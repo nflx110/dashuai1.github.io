@@ -316,6 +316,7 @@
         .custom-field-item span {
             font-family: monospace;
             word-break: break-all;
+            cursor: pointer;
         }
 
         .custom-field-item button {
@@ -362,6 +363,78 @@
             width: calc(100% - 2rem);
             padding: 0.25rem 0.5rem;
             font-size: 0.875rem;
+        }
+
+        /* Multi-Select Dropdown Styles */
+        .multi-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .multi-select-trigger {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: #f9fafb;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .multi-select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
+
+        .multi-select-option {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        .multi-select-option:hover {
+            background-color: #f1f5f9;
+        }
+
+        .multi-select-option.selected {
+            background-color: #dbeafe;
+            color: var(--primary-color);
+        }
+
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .selected-tag {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .selected-tag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
         }
 
         /* Modal Styles */
@@ -529,15 +602,23 @@
                         </div>
                         <div class="form-group">
                             <label for="param-select"><i class="fas fa-list"></i> 选择参数</label>
-                            <select id="param-select">
-                                <option value="">全部参数</option>
-                                <option value="utm_source">utm_source</option>
-                                <option value="utm_medium">utm_medium</option>
-                                <option value="utm_campaign">utm_campaign</option>
-                                <option value="id">id</option>
-                                <option value="ref">ref</option>
-                                <option value="custom_params">管理自定义参数...</option>
-                            </select>
+                            <div class="multi-select-wrapper">
+                                <div class="multi-select-trigger" onclick="toggleMultiSelectDropdown()">
+                                    <span id="multi-select-trigger-text">请选择参数...</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="multi-select-dropdown" id="multi-select-dropdown">
+                                    <div class="multi-select-option" data-value="">全部参数</div>
+                                    <div class="multi-select-option" data-value="utm_source">utm_source</div>
+                                    <div class="multi-select-option" data-value="utm_medium">utm_medium</div>
+                                    <div class="multi-select-option" data-value="utm_campaign">utm_campaign</div>
+                                    <div class="multi-select-option" data-value="id">id</div>
+                                    <div class="multi-select-option" data-value="ref">ref</div>
+                                    <!-- Custom params will be injected here -->
+                                    <div class="multi-select-option" data-value="custom_params_manage">管理自定义参数...</div>
+                                </div>
+                            </div>
+                            <div class="selected-tags" id="selected-tags-container"></div>
                         </div>
                         <div class="button-group">
                             <button onclick="parseUrl()"><i class="fas fa-play"></i> 解析</button>
@@ -573,9 +654,10 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="field-paths"><i class="fas fa-key"></i> 字段路径 (每行一个)</label>
+                            <label for="field-paths"><i class="fas fa-key"></i> 字段路径或字段名 (每行一个)</label>
                             <div class="form-row">
-                                <textarea id="field-paths" placeholder="user.name&#10;user.id">user.name
+                                <textarea id="field-paths" placeholder="user.name&#10;name&#10;user.id">user.name
+name
 user.id
 settings.theme</textarea>
                                 <button class="clear-btn-input" title="清空" onclick="clearInputField('field-paths')"><i class="fas fa-times"></i></button>
@@ -624,6 +706,15 @@ settings.theme</textarea>
                                 <option value="hours-to-minutes-seconds">小时转分秒</option>
                                 <option value="seconds-to-minutes-seconds">秒数转分秒</option>
                                 <option value="milliseconds-to-minutes-seconds">毫秒转分秒</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="output-format"><i class="fas fa-ruler-combined"></i> 输出格式</label>
+                            <select id="output-format" class="conversion-select">
+                                <option value="hms">时:分:秒</option>
+                                <option value="ms">分:秒</option>
+                                <option value="total_seconds">总秒数</option>
+                                <option value="total_milliseconds">总毫秒数</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -682,6 +773,7 @@ settings.theme</textarea>
         // --- State Management ---
         let customJsonFields = JSON.parse(localStorage.getItem('customJsonFields')) || [];
         let customUrlParams = JSON.parse(localStorage.getItem('customUrlParams')) || [];
+        let selectedUrlParams = []; // For multi-select state
 
         // --- Tab Switching ---
         document.querySelectorAll('.tab-button').forEach(button => {
@@ -733,12 +825,16 @@ settings.theme</textarea>
                 if (imageUrl) {
                     document.body.style.backgroundImage = `url('${imageUrl}')`;
                     localStorage.setItem('customWallpaper', imageUrl);
+                    wallpaperSelect.value = imageUrl;
                 } else {
                     wallpaperSelect.value = '';
                 }
+            } else if(imageUrl){
+                 document.body.style.backgroundImage = `url('${imageUrl}')`;
+                 localStorage.setItem('customWallpaper', imageUrl);
             } else {
-                 document.body.style.backgroundImage = imageUrl ? `url('${imageUrl}')` : '';
-                 if (!imageUrl) localStorage.removeItem('customWallpaper');
+                 document.body.style.backgroundImage = '';
+                 localStorage.removeItem('customWallpaper');
             }
         }
 
@@ -750,9 +846,14 @@ settings.theme</textarea>
             themeSelect.value = savedTheme;
             if(savedWallpaper) {
                 document.body.style.backgroundImage = `url('${savedWallpaper}')`;
-                wallpaperSelect.value = 'custom';
+                wallpaperSelect.value = savedWallpaper;
             }
+            // Initialize custom params in dropdown
+            updateUrlParamDropdownOptions();
+            // Initialize saved fields
+            renderSavedJsonFields();
         };
+
 
         // --- Utility Functions ---
         function clearInputField(fieldId) {
@@ -763,6 +864,101 @@ settings.theme</textarea>
             document.getElementById(containerId).innerHTML = '';
         }
 
+        // --- Multi-Select Dropdown for URL Params ---
+        function toggleMultiSelectDropdown() {
+            const dropdown = document.getElementById('multi-select-dropdown');
+            const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
+            dropdown.style.display = isHidden ? 'block' : 'none';
+        }
+
+        function updateSelectedTagsDisplay() {
+            const container = document.getElementById('selected-tags-container');
+            container.innerHTML = '';
+            selectedUrlParams.forEach(param => {
+                if(param === '') return; // Skip 'all'
+                const tag = document.createElement('div');
+                tag.className = 'selected-tag';
+                tag.innerHTML = `${param} <button onclick="removeSelectedParam('${param}')"><i class="fas fa-times"></i></button>`;
+                container.appendChild(tag);
+            });
+            document.getElementById('multi-select-trigger-text').textContent = 
+                selectedUrlParams.length === 0 ? '请选择参数...' : 
+                selectedUrlParams.length === 1 ? selectedUrlParams[0] : 
+                `${selectedUrlParams.length} 项已选`;
+        }
+
+        function removeSelectedParam(paramToRemove) {
+            selectedUrlParams = selectedUrlParams.filter(p => p !== paramToRemove);
+            updateSelectedTagsDisplay();
+            const allOptions = document.querySelectorAll('#multi-select-dropdown .multi-select-option');
+            allOptions.forEach(opt => {
+                if (opt.dataset.value === paramToRemove) {
+                    opt.classList.remove('selected');
+                }
+            });
+        }
+
+        document.querySelectorAll('#multi-select-dropdown .multi-select-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const value = option.dataset.value;
+                
+                if (value === 'custom_params_manage') {
+                    openCustomParamsModal();
+                    return;
+                }
+
+                if (value === '') { // 'All' option
+                    if (selectedUrlParams.includes('')) {
+                        selectedUrlParams = [];
+                    } else {
+                        selectedUrlParams = [''];
+                    }
+                } else {
+                    if (selectedUrlParams.includes(value)) {
+                        selectedUrlParams = selectedUrlParams.filter(v => v !== value);
+                    } else {
+                        selectedUrlParams = selectedUrlParams.filter(v => v !== ''); // Remove 'all' if specific one is selected
+                        selectedUrlParams.push(value);
+                    }
+                }
+                
+                // Update UI
+                document.querySelectorAll('#multi-select-dropdown .multi-select-option').forEach(opt => {
+                    if (opt.dataset.value === value && value !== 'custom_params_manage') {
+                        opt.classList.toggle('selected', selectedUrlParams.includes(value));
+                    } else if (opt.dataset.value !== 'custom_params_manage'){
+                        opt.classList.toggle('selected', selectedUrlParams.includes(opt.dataset.value));
+                    }
+                });
+
+                updateSelectedTagsDisplay();
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('multi-select-dropdown');
+            const trigger = document.querySelector('.multi-select-trigger');
+            if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        function updateUrlParamDropdownOptions() {
+            const dropdown = document.getElementById('multi-select-dropdown');
+            const existingCustomItems = dropdown.querySelectorAll('.custom-param-option');
+            existingCustomItems.forEach(el => el.remove());
+
+            customUrlParams.forEach(param => {
+                const opt = document.createElement('div');
+                opt.className = 'multi-select-option custom-param-option';
+                opt.dataset.value = param;
+                opt.textContent = param;
+                dropdown.insertBefore(opt, document.querySelector('.multi-select-option[data-value="custom_params_manage"]'));
+            });
+        }
+
+
         // --- URL Functions ---
         function parseUrl() {
             const urlStr = document.getElementById('url-input').value;
@@ -771,19 +967,23 @@ settings.theme</textarea>
                 const url = new URL(urlStr);
                 const searchParams = new URLSearchParams(url.search);
                 const resultsDiv = document.getElementById('parsed-results');
-                const selectedParam = document.getElementById('param-select').value;
-                
-                if (selectedParam === 'custom_params') {
-                    openCustomParamsModal();
-                    return;
-                }
 
                 let html = '<h4>解析结果:</h4>';
-                if (selectedParam && selectedParam !== '') {
-                    const value = searchParams.get(selectedParam);
-                    html += `<div class="result-item"><strong>${selectedParam}:</strong> ${value || 'N/A'}</div>`;
-                } else {
+
+                if (selectedUrlParams.includes('')) {
+                    // If 'all' is selected, show all
                     for (const [key, value] of searchParams) {
+                        html += `<div class="result-item"><strong>${key}:</strong> ${value}</div>`;
+                    }
+                } else if (selectedUrlParams.length > 0) {
+                    // Show only selected params
+                    selectedUrlParams.forEach(param => {
+                        const value = searchParams.get(param);
+                        html += `<div class="result-item"><strong>${param}:</strong> ${value || 'N/A'}</div>`;
+                    });
+                } else {
+                    // If nothing is selected, show all as fallback
+                     for (const [key, value] of searchParams) {
                         html += `<div class="result-item"><strong>${key}:</strong> ${value}</div>`;
                     }
                 }
@@ -834,10 +1034,13 @@ settings.theme</textarea>
         function clearAllUrl() {
             clearInputField('url-input');
             clearInputField('correct-url-input');
-            document.getElementById('param-select').value = '';
+            selectedUrlParams = [];
+            updateSelectedTagsDisplay();
+            document.querySelectorAll('#multi-select-dropdown .multi-select-option').forEach(opt => opt.classList.remove('selected'));
             clearResults('parsed-results');
             clearResults('comparison-results');
         }
+
 
         // --- Custom URL Params Modal ---
         function openCustomParamsModal() {
@@ -868,6 +1071,7 @@ settings.theme</textarea>
             if (name && !customUrlParams.includes(name)) {
                 customUrlParams.push(name);
                 renderSavedParamsList();
+                updateUrlParamDropdownOptions(); // Add to dropdown
                 input.value = '';
             }
         }
@@ -875,42 +1079,22 @@ settings.theme</textarea>
         function removeCustomParam(name) {
             customUrlParams = customUrlParams.filter(p => p !== name);
             renderSavedParamsList();
+            updateUrlParamDropdownOptions(); // Remove from dropdown
+            // Also remove from selected if present
+            removeSelectedParam(name);
         }
 
         function saveAndCloseParamsModal() {
             localStorage.setItem('customUrlParams', JSON.stringify(customUrlParams));
             closeModal('custom-params-modal');
-            // Update the main select dropdown options
-            const select = document.getElementById('param-select');
-            const options = Array.from(select.children).slice(0, 6); // Keep first 6 default options
-            select.innerHTML = '';
-            options.forEach(opt => select.appendChild(opt));
-            customUrlParams.forEach(param => {
-                const opt = document.createElement('option');
-                opt.value = param;
-                opt.textContent = param;
-                select.appendChild(opt);
-            });
-             const manageOpt = document.createElement('option');
-             manageOpt.value = 'custom_params';
-             manageOpt.textContent = '管理自定义参数...';
-             select.appendChild(manageOpt);
         }
-
-        // Initialize custom params in dropdown on load
-        window.onload = function() {
-            // ... (existing onload code for theme/bg) ...
-            const select = document.getElementById('param-select');
-            customUrlParams.forEach(param => {
-                const opt = document.createElement('option');
-                opt.value = param;
-                opt.textContent = param;
-                select.appendChild(opt);
-            });
-        };
 
 
         // --- JSON Functions ---
+        function jsonStringifySafe(obj) {
+            return JSON.stringify(obj, (key, val) => typeof val === 'function' ? val.toString() : val);
+        }
+
         function extractJsonFields() {
             const jsonText = document.getElementById('json-input').value;
             const pathsText = document.getElementById('field-paths').value;
@@ -919,26 +1103,58 @@ settings.theme</textarea>
                 return;
             }
             try {
-                const jsonData = JSON.parse(jsonText);
+                let jsonData;
+                try {
+                    jsonData = JSON.parse(jsonText);
+                } catch {
+                    // Attempt to fix common non-standard JSON issues
+                    let fixedJsonText = jsonText
+                        .replace(/(\w+):/g, '"$1":') // Wrap unquoted keys in quotes
+                        .replace(/'/g, '"'); // Replace single quotes with double quotes
+                    jsonData = JSON.parse(fixedJsonText);
+                }
+
                 const paths = pathsText.split('\n').map(p => p.trim()).filter(Boolean);
                 const resultsDiv = document.getElementById('json-results');
                 let html = '<h4>提取结果:</h4>';
+                
                 paths.forEach(path => {
-                    try {
-                        const value = getNestedValue(jsonData, path);
-                        const valueStr = value !== undefined ? JSON.stringify(value) : 'undefined';
-                        html += `<div class="result-item" data-field="${path}">
-                                    <strong>${path}:</strong> ${valueStr}
-                                    <input type="text" class="verification-input" placeholder="输入期望值..." data-field="${path}" data-actual="${valueStr}">
-                                 </div>`;
-                    } catch (e) {
-                        html += `<div class="result-item error"><strong>${path}:</strong> 错误 - ${e.message}</div>`;
+                    // Determine if it's a full path (contains dots) or a simple field name
+                    const isFullPath = path.includes('.');
+                    
+                    if (isFullPath) {
+                        // Exact Path Match
+                        try {
+                            const value = getNestedValue(jsonData, path);
+                            const valueStr = value !== undefined ? jsonStringifySafe(value) : 'undefined';
+                            html += `<div class="result-item" data-field="${path}">
+                                        <strong>${path}:</strong> ${valueStr}
+                                        <input type="text" class="verification-input" placeholder="输入期望值..." data-field="${path}" data-actual="${valueStr}">
+                                     </div>`;
+                        } catch (e) {
+                            html += `<div class="result-item error"><strong>${path}:</strong> 错误 - ${e.message}</div>`;
+                        }
+                    } else {
+                        // Fuzzy Field Name Search
+                        const matches = findValuesByFieldName(jsonData, path);
+                        if (matches.length > 0) {
+                            matches.forEach((match, idx) => {
+                                const uniqueKey = `${path}_${idx}`;
+                                const valueStr = jsonStringifySafe(match.value);
+                                html += `<div class="result-item" data-field="${uniqueKey}">
+                                            <strong>[模糊匹配] ${match.path}:</strong> ${valueStr}
+                                            <input type="text" class="verification-input" placeholder="输入期望值..." data-field="${uniqueKey}" data-actual="${valueStr}">
+                                         </div>`;
+                            });
+                        } else {
+                            html += `<div class="result-item error"><strong>[未找到] ${path}:</strong> 在JSON中未找到该字段名</div>`;
+                        }
                     }
                 });
                 resultsDiv.innerHTML = html;
                 attachVerificationListeners();
             } catch (e) {
-                alert('JSON格式错误: ' + e.message);
+                alert('JSON格式错误或自动修复失败: ' + e.message);
             }
         }
 
@@ -951,6 +1167,20 @@ settings.theme</textarea>
             }
             return result;
         }
+
+        function findValuesByFieldName(obj, fieldName, path = '', results = []) {
+            if (obj !== null && typeof obj === 'object') {
+                Object.keys(obj).forEach(key => {
+                    const newPath = path ? `${path}.${key}` : key;
+                    if (key === fieldName) {
+                        results.push({ path: newPath, value: obj[key] });
+                    }
+                    findValuesByFieldName(obj[key], fieldName, newPath, results);
+                });
+            }
+            return results;
+        }
+
 
         function attachVerificationListeners() {
             document.querySelectorAll('#json-results .verification-input').forEach(input => {
@@ -1013,27 +1243,21 @@ settings.theme</textarea>
         function removeCustomJsonField(path) {
             customJsonFields = customJsonFields.filter(f => f !== path);
             localStorage.setItem('customJsonFields', JSON.stringify(customJsonFields));
-            renderSavedJsonFields();
+            renderSavedJsonFields(); // Refresh the list
         }
 
         function clearAllJson() {
             clearInputField('json-input');
             clearInputField('field-paths');
             clearResults('json-results');
-            // Optionally also clear verification results if needed
             document.getElementById('verification-results').innerHTML = '<p>请先在左侧执行“提取”操作。</p>';
         }
-
-        // Initialize saved fields on load
-        window.onload = function() {
-            // ... (existing onload code) ...
-            renderSavedJsonFields();
-        };
 
 
         // --- Time Functions ---
         function convertTime() {
             const conversionType = document.getElementById('conversion-type').value;
+            const outputFormat = document.getElementById('output-format').value;
             const inputValue = parseFloat(document.getElementById('input-value').value);
 
             if (isNaN(inputValue) || inputValue < 0) {
@@ -1041,43 +1265,57 @@ settings.theme</textarea>
                 return;
             }
 
-            let resultText = '';
+            let totalSeconds = 0;
+            let totalMilliseconds = 0;
 
             switch (conversionType) {
                 case 'minutes-to-hours-minutes':
-                    const hours = Math.floor(inputValue / 60);
-                    const minutes = inputValue % 60;
-                    const seconds = 0;
-                    resultText = `${hours} 小时 ${minutes} 分 ${seconds} 秒`;
+                    totalSeconds = inputValue * 60;
                     break;
-
                 case 'minutes-to-minutes-seconds':
-                    const mins = Math.floor(inputValue);
-                    const secsFromMins = Math.round((inputValue - mins) * 60);
-                    resultText = `${mins} 分 ${secsFromMins} 秒`;
+                    totalSeconds = inputValue * 60;
                     break;
-
                 case 'hours-to-minutes-seconds':
-                    const totalMins = Math.floor(inputValue * 60);
-                    const secsFromHours = Math.round((inputValue * 60 - totalMins) * 60);
-                    resultText = `${totalMins} 分 ${secsFromHours} 秒`;
+                    totalSeconds = inputValue * 60 * 60;
                     break;
-
                 case 'seconds-to-minutes-seconds':
-                    const minsFromSecs = Math.floor(inputValue / 60);
-                    const remainingSecs = Math.round(inputValue % 60);
-                    resultText = `${minsFromSecs} 分 ${remainingSecs} 秒`;
+                    totalSeconds = inputValue;
                     break;
-
                 case 'milliseconds-to-minutes-seconds':
-                    const totalSecs = Math.floor(inputValue / 1000);
-                    const minsFromMs = Math.floor(totalSecs / 60);
-                    const finalSecs = totalSecs % 60;
-                    resultText = `${minsFromMs} 分 ${finalSecs} 秒`;
+                    totalMilliseconds = inputValue;
+                    totalSeconds = inputValue / 1000;
                     break;
-
                 default:
-                    resultText = '未知转换类型';
+                    document.getElementById('time-conversion-result').innerHTML = '<div class="result-item error">未知转换类型</div>';
+                    return;
+            }
+
+            let resultText = '';
+            const absTotalSeconds = Math.abs(totalSeconds);
+            const absTotalMilliseconds = Math.abs(totalMilliseconds);
+            
+            const sign = totalSeconds < 0 ? '-' : '';
+
+            switch (outputFormat) {
+                case 'hms':
+                    const hours = Math.floor(absTotalSeconds / 3600);
+                    const minutes = Math.floor((absTotalSeconds % 3600) / 60);
+                    const seconds = Math.floor(absTotalSeconds % 60);
+                    resultText = `${sign}${hours}小时${minutes}分${seconds}秒`;
+                    break;
+                case 'ms':
+                    const mins = Math.floor(absTotalSeconds / 60);
+                    const secs = Math.floor(absTotalSeconds % 60);
+                    resultText = `${sign}${mins}分${secs}秒`;
+                    break;
+                case 'total_seconds':
+                    resultText = `${sign}${Math.round(absTotalSeconds)} 秒`;
+                    break;
+                case 'total_milliseconds':
+                    resultText = `${sign}${Math.round(absTotalMilliseconds || absTotalSeconds * 1000)} 毫秒`;
+                    break;
+                default:
+                    resultText = '未知输出格式';
             }
 
             document.getElementById('time-conversion-result').innerHTML = `<div class="result-item match"><strong>转换结果:</strong> ${resultText}</div>`;
