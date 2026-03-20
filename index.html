@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JSON 字段提取器</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 20px;
+      background: #f8f9fa;
+      color: #333;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+    }
+    .panel {
+      flex: 1;
+      min-width: 300px;
+    }
+    textarea, input, button {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    textarea {
+      height: 300px;
+      resize: vertical;
+    }
+    button {
+      background: #0070f3;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #005fcc;
+    }
+    #result {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 15px;
+      height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    h2 {
+      margin-top: 0;
+      color: #0070f3;
+    }
+    .example {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 JSON 字段提取器（纯前端 · 隐私安全）</h1>
+  <p>粘贴 JSON，输入字段路径（如 <code>user.name</code> 或 <code>items[0].price</code>），自动提取值。</p>
+
+  <div class="container">
+    <div class="panel">
+      <h2>1. 粘贴 JSON</h2>
+      <textarea id="jsonInput" placeholder='{"user": {"name": "张三"}, "items": [{"price": 100}]}'>{
+  "request_id": "req_123",
+  "user": {
+    "name": "李四",
+    "device": {
+      "os": "Android"
+    }
+  },
+  "ads": [
+    {"ad_id": "ad001", "click_url": "https://track.com/c?id=ad001"},
+    {"ad_id": "ad002"}
+  ]
+}</textarea>
+    </div>
+
+    <div class="panel">
+      <h2>2. 输入字段路径（每行一个）</h2>
+      <textarea id="pathsInput" placeholder="user.name&#10;user.device.os&#10;ads[0].ad_id">user.name
+user.device.os
+ads[0].ad_id
+ads[1].click_url
+non.existent.field</textarea>
+      <button onclick="extractFields()">🚀 提取字段</button>
+      <div class="example">支持格式：<br>• user.name<br>• items[0].price<br>• data.list[2].id</div>
+    </div>
+
+    <div class="panel">
+      <h2>3. 提取结果</h2>
+      <div id="result">点击“提取字段”查看结果</div>
+    </div>
+  </div>
+
+  <script>
+    function safeGet(obj, path) {
+      try {
+        // 处理带索引的路径，如 items[0].name
+        let current = obj;
+        const parts = path.split('.').filter(p => p);
+        
+        for (let part of parts) {
+          if (!current) return 'N/A';
+          
+          // 检查是否包含数组索引，如 items[0]
+          const arrayMatch = part.match(/^([^\[]+)\[(\d+)\]$/);
+          if (arrayMatch) {
+            const key = arrayMatch[1];
+            const index = parseInt(arrayMatch[2], 10);
+            if (!Array.isArray(current[key]) || index >= current[key].length) {
+              return 'N/A';
+            }
+            current = current[key][index];
+          } else {
+            if (!(part in current)) return 'N/A';
+            current = current[part];
+          }
+        }
+        return current;
+      } catch (e) {
+        return 'Error: ' + e.message;
+      }
+    }
+
+    function extractFields() {
+      const jsonStr = document.getElementById('jsonInput').value.trim();
+      const pathsStr = document.getElementById('pathsInput').value.trim();
+      
+      if (!jsonStr || !pathsStr) {
+        alert('请填写 JSON 和字段路径');
+        return;
+      }
+
+      try {
+        const data = JSON.parse(jsonStr);
+        const paths = pathsStr.split('\n').map(p => p.trim()).filter(p => p);
+        
+        let resultText = '';
+        for (const path of paths) {
+          const value = safeGet(data, path);
+          const formattedValue = typeof value === 'object' 
+            ? JSON.stringify(value, null, 2)
+            : String(value);
+          resultText += `${path}: ${formattedValue}\n\n`;
+        }
+        
+        document.getElementById('result').textContent = resultText;
+      } catch (e) {
+        document.getElementById('result').textContent = `❌ JSON 解析错误:\n${e.message}`;
+      }
+    }
+
+    // 页面加载时自动提取一次
+    window.onload = extractFields;
+  </script>
+</body>
+</html>
