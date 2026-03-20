@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
+            /* 默认主题 (蓝) */
             --primary-color: #4361ee;
             --secondary-color: #3f37c9;
             --accent-color: #4cc9f0;
@@ -41,6 +42,9 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
 
         .app-container {
@@ -76,7 +80,26 @@
             gap: 0.75rem;
         }
 
-        .theme-selector select {
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .control-group label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 0.25rem;
+        }
+
+        .theme-selector select,
+        .wallpaper-input {
             background-color: rgba(255, 255, 255, 0.15);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -85,9 +108,14 @@
             backdrop-filter: blur(10px);
         }
 
-        .theme-selector select option {
+        .theme-selector select option,
+        .wallpaper-input option {
             background-color: var(--surface-color);
             color: var(--text-primary);
+        }
+
+        .wallpaper-input {
+            width: 250px;
         }
 
         .tabs {
@@ -175,6 +203,13 @@
 
         .form-group {
             margin-bottom: 1rem;
+            position: relative; /* For absolute positioning of clear button */
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         label {
@@ -205,6 +240,24 @@
             min-height: 120px;
             resize: vertical;
             font-family: inherit;
+        }
+
+        .clear-btn-input {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .clear-btn-input:hover {
+            background-color: #e2e8f0;
+            color: var(--text-primary);
         }
 
         .button-group {
@@ -244,6 +297,30 @@
 
         button.secondary:hover {
             background-color: #e2e8f0;
+        }
+
+        .custom-fields-container {
+            margin-top: 1rem;
+        }
+
+        .custom-field-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background-color: #f1f5f9;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.25rem;
+        }
+
+        .custom-field-item span {
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .custom-field-item button {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
         }
 
         .result-container {
@@ -287,6 +364,69 @@
             font-size: 0.875rem;
         }
 
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--surface-color);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-body ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .modal-body li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
         footer {
             text-align: center;
             padding: 2rem;
@@ -300,6 +440,20 @@
                 flex-direction: column;
                 gap: 1rem;
                 text-align: center;
+            }
+            
+            .controls {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group {
+                align-items: stretch;
+            }
+
+            .wallpaper-input {
+                width: 100%;
             }
             
             .card-grid {
@@ -316,11 +470,33 @@
     <header>
         <div class="header-content">
             <h1><i class="fas fa-wrench"></i> 智能数据解析工具</h1>
-            <div class="theme-selector">
-                <select id="theme-select">
-                    <option value="light">默认主题</option>
-                    <option value="dark">深色模式</option>
-                </select>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="theme-select">主题颜色</label>
+                    <select id="theme-select">
+                        <option value="blue">蓝色 (默认)</option>
+                        <option value="green">绿色</option>
+                        <option value="purple">紫色</option>
+                        <option value="red">红色</option>
+                        <option value="orange">橙色</option>
+                        <option value="teal">青色</option>
+                        <option value="indigo">靛蓝</option>
+                        <option value="pink">粉色</option>
+                        <option value="yellow">黄色</option>
+                        <option value="gray">灰色</option>
+                        <option value="dark">深色模式</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="wallpaper-input">自定义壁纸</label>
+                    <select id="wallpaper-input" onchange="setCustomBackground(this.value)">
+                        <option value="">默认背景</option>
+                        <option value="https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1920&auto=format&fit=crop">森林晨雾</option>
+                        <option value="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1920&auto=format&fit=crop">山川湖泊</option>
+                        <option value="https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1920&auto=format&fit=crop">自然风光</option>
+                        <option value="custom">自定义URL...</option>
+                    </select>
+                </div>
             </div>
         </div>
     </header>
@@ -346,7 +522,10 @@
                         <h3 class="card-title"><i class="fas fa-cogs"></i> 解析与提取</h3>
                         <div class="form-group">
                             <label for="url-input"><i class="fas fa-globe-asia"></i> 输入URL</label>
-                            <textarea id="url-input" placeholder="https://example.com/path?param1=value1&param2=value2"></textarea>
+                            <div class="form-row">
+                                <textarea id="url-input" placeholder="https://example.com/path?param1=value1&param2=value2"></textarea>
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('url-input')"><i class="fas fa-times"></i></button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="param-select"><i class="fas fa-list"></i> 选择参数</label>
@@ -357,11 +536,12 @@
                                 <option value="utm_campaign">utm_campaign</option>
                                 <option value="id">id</option>
                                 <option value="ref">ref</option>
+                                <option value="custom_params">管理自定义参数...</option>
                             </select>
                         </div>
                         <div class="button-group">
                             <button onclick="parseUrl()"><i class="fas fa-play"></i> 解析</button>
-                            <button class="secondary" onclick="clearResults()"><i class="fas fa-broom"></i> 清空</button>
+                            <button class="secondary" onclick="clearAllUrl()"><i class="fas fa-broom"></i> 清空全部</button>
                         </div>
                         <div id="parsed-results" class="result-container"></div>
                     </div>
@@ -369,7 +549,10 @@
                         <h3 class="card-title"><i class="fas fa-exchange-alt"></i> 对比验证</h3>
                         <div class="form-group">
                             <label for="correct-url-input"><i class="fas fa-check-circle"></i> 参考URL</label>
-                            <textarea id="correct-url-input" placeholder="粘贴正确的URL进行比对..."></textarea>
+                            <div class="form-row">
+                                <textarea id="correct-url-input" placeholder="粘贴正确的URL进行比对..."></textarea>
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('correct-url-input')"><i class="fas fa-times"></i></button>
+                            </div>
                         </div>
                         <button onclick="compareUrls()"><i class="fas fa-search"></i> 开始比对</button>
                         <div id="comparison-results" class="result-container"></div>
@@ -384,17 +567,37 @@
                         <h3 class="card-title"><i class="fas fa-cogs"></i> 解析与提取</h3>
                         <div class="form-group">
                             <label for="json-input"><i class="fas fa-code"></i> 输入JSON</label>
-                            <textarea id="json-input" placeholder='{ "user": { "name": "张三" } }'></textarea>
+                            <div class="form-row">
+                                <textarea id="json-input" placeholder='{ "user": { "name": "张三" } }'></textarea>
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('json-input')"><i class="fas fa-times"></i></button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="field-paths"><i class="fas fa-key"></i> 字段路径 (每行一个)</label>
-                            <textarea id="field-paths" placeholder="user.name&#10;user.id">user.name
+                            <div class="form-row">
+                                <textarea id="field-paths" placeholder="user.name&#10;user.id">user.name
 user.id
 settings.theme</textarea>
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('field-paths')"><i class="fas fa-times"></i></button>
+                            </div>
                         </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-plus-circle"></i> 添加自定义字段路径</label>
+                            <div class="form-row">
+                                <input type="text" id="new-field-path" placeholder="例如: profile.avatar">
+                                <button onclick="addCustomFieldPath()" style="padding: 0.75rem;"><i class="fas fa-plus"></i> 添加</button>
+                            </div>
+                        </div>
+
+                        <div class="custom-fields-container">
+                            <h4>我的常用路径:</h4>
+                            <div id="saved-custom-fields-json"></div>
+                        </div>
+
                         <div class="button-group">
                             <button onclick="extractJsonFields()"><i class="fas fa-play"></i> 提取</button>
-                            <button class="secondary" onclick="clearJsonResults()"><i class="fas fa-broom"></i> 清空</button>
+                            <button class="secondary" onclick="clearAllJson()"><i class="fas fa-broom"></i> 清空全部</button>
                         </div>
                         <div id="json-results" class="result-container"></div>
                     </div>
@@ -412,26 +615,63 @@ settings.theme</textarea>
             <section id="time-tab" class="tab-content">
                 <div class="card-grid">
                     <div class="card">
-                        <h3 class="card-title"><i class="fas fa-calendar-day"></i> 时间戳转换</h3>
+                        <h3 class="card-title"><i class="fas fa-calendar-day"></i> 时间单位转换</h3>
+                        <div class="form-group">
+                            <label for="conversion-type"><i class="fas fa-sliders-h"></i> 选择转换类型</label>
+                            <select id="conversion-type" class="conversion-select">
+                                <option value="minutes-to-hours-minutes">分钟转时分秒</option>
+                                <option value="minutes-to-minutes-seconds">分钟转分秒</option>
+                                <option value="hours-to-minutes-seconds">小时转分秒</option>
+                                <option value="seconds-to-minutes-seconds">秒数转分秒</option>
+                                <option value="milliseconds-to-minutes-seconds">毫秒转分秒</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-value"><i class="fas fa-stopwatch"></i> 输入数值</label>
+                            <div class="form-row">
+                                <input type="number" id="input-value" placeholder="请输入数字" min="0" step="1">
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('input-value')"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <button onclick="convertTime()"><i class="fas fa-sync-alt"></i> 转换</button>
+                        <div id="time-conversion-result" class="result-container"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-hourglass-end"></i> 时间戳转换</h3>
                         <div class="form-group">
                             <label for="timestamp-input"><i class="fas fa-hourglass-half"></i> 输入时间戳 (秒或毫秒)</label>
-                            <input type="number" id="timestamp-input" placeholder="例如: 1700000000 或 1700000000000">
+                            <div class="form-row">
+                                <input type="number" id="timestamp-input" placeholder="例如: 1700000000 或 1700000000000">
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('timestamp-input')"><i class="fas fa-times"></i></button>
+                            </div>
                         </div>
                         <button onclick="convertTimestamp()"><i class="fas fa-sync-alt"></i> 转换</button>
                         <div id="timestamp-result" class="result-container"></div>
                     </div>
-                    <div class="card">
-                        <h3 class="card-title"><i class="fas fa-hourglass-end"></i> 分钟转时分秒</h3>
-                        <div class="form-group">
-                            <label for="minutes-input"><i class="fas fa-stopwatch"></i> 输入分钟数</label>
-                            <input type="number" id="minutes-input" placeholder="例如: 125">
-                        </div>
-                        <button onclick="convertMinutes()"><i class="fas fa-sync-alt"></i> 转换</button>
-                        <div id="time-format-result" class="result-container"></div>
-                    </div>
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Modal for Custom URL Params -->
+    <div id="custom-params-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>管理自定义URL参数</h3>
+                <span class="close-modal" onclick="closeModal('custom-params-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <input type="text" id="new-param-name" placeholder="参数名，如: custom_id">
+                    <button onclick="addCustomParam()"><i class="fas fa-plus"></i> 添加</button>
+                </div>
+                <ul id="saved-custom-params-list"></ul>
+            </div>
+            <div class="modal-actions">
+                <button class="secondary" onclick="closeModal('custom-params-modal')">取消</button>
+                <button onclick="saveAndCloseParamsModal()">保存并关闭</button>
+            </div>
+        </div>
     </div>
 
     <footer>
@@ -439,7 +679,11 @@ settings.theme</textarea>
     </footer>
 
     <script>
-        // Tab Switching
+        // --- State Management ---
+        let customJsonFields = JSON.parse(localStorage.getItem('customJsonFields')) || [];
+        let customUrlParams = JSON.parse(localStorage.getItem('customUrlParams')) || [];
+
+        // --- Tab Switching ---
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', () => {
                 const targetTab = button.getAttribute('data-tab');
@@ -456,50 +700,70 @@ settings.theme</textarea>
             });
         });
 
-        // Theme Switching
-        const themeSelect = document.getElementById('theme-select');
-        const root = document.documentElement;
-
+        // --- Theme & Background ---
         const themes = {
-            light: {
-                '--primary-color': '#4361ee',
-                '--secondary-color': '#3f37c9',
-                '--background-color': '#f8fafc',
-                '--surface-color': '#ffffff',
-                '--text-primary': '#1e293b',
-                '--text-secondary': '#64748b',
-                '--border-color': '#e2e8f0',
-            },
-            dark: {
-                '--primary-color': '#809fff',
-                '--secondary-color': '#6d61d6',
-                '--background-color': '#0f172a',
-                '--surface-color': '#1e293b',
-                '--text-primary': '#f1f5f9',
-                '--text-secondary': '#94a3b8',
-                '--border-color': '#334155',
-            }
+            blue: { '--primary-color': '#4361ee', '--secondary-color': '#3f37c9', '--background-color': '#f8fafc', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#e2e8f0' },
+            green: { '--primary-color': '#22c55e', '--secondary-color': '#16a34a', '--background-color': '#f0fdf4', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#bbf7d0' },
+            purple: { '--primary-color': '#a855f7', '--secondary-color': '#9333ea', '--background-color': '#faf5ff', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#e9d5ff' },
+            red: { '--primary-color': '#ef4444', '--secondary-color': '#dc2626', '--background-color': '#fef2f2', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fecaca' },
+            orange: { '--primary-color': '#f97316', '--secondary-color': '#ea580c', '--background-color': '#fff7ed', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fed7aa' },
+            teal: { '--primary-color': '#14b8a6', '--secondary-color': '#0d9488', '--background-color': '#f0fdfa', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#a7f3d0' },
+            indigo: { '--primary-color': '#6366f1', '--secondary-color': '#4f46e5', '--background-color': '#eef2ff', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#c7d2fe' },
+            pink: { '--primary-color': '#ec4899', '--secondary-color': '#db2777', '--background-color': '#fdf2f8', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fbcfe8' },
+            yellow: { '--primary-color': '#eab308', '--secondary-color': '#ca8a04', '--background-color': '#fefce8', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fde047' },
+            gray: { '--primary-color': '#6b7280', '--secondary-color': '#4b5563', '--background-color': '#f9fafb', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#e5e7eb' },
+            dark: { '--primary-color': '#809fff', '--secondary-color': '#6d61d6', '--background-color': '#0f172a', '--surface-color': '#1e293b', '--text-primary': '#f1f5f9', '--text-secondary': '#94a3b8', '--border-color': '#334155' }
         };
 
+        const root = document.documentElement;
+        const themeSelect = document.getElementById('theme-select');
+        const wallpaperSelect = document.getElementById('wallpaper-input');
+
         function applyTheme(themeName) {
-            const themeVars = themes[themeName] || themes.light;
+            const themeVars = themes[themeName] || themes.blue;
             Object.entries(themeVars).forEach(([prop, val]) => {
                 root.style.setProperty(prop, val);
             });
             localStorage.setItem('selectedTheme', themeName);
         }
 
-        themeSelect.addEventListener('change', (e) => {
-            applyTheme(e.target.value);
-        });
+        function setCustomBackground(imageUrl) {
+            if (imageUrl === 'custom') {
+                imageUrl = prompt("请输入图片URL:");
+                if (imageUrl) {
+                    document.body.style.backgroundImage = `url('${imageUrl}')`;
+                    localStorage.setItem('customWallpaper', imageUrl);
+                } else {
+                    wallpaperSelect.value = '';
+                }
+            } else {
+                 document.body.style.backgroundImage = imageUrl ? `url('${imageUrl}')` : '';
+                 if (!imageUrl) localStorage.removeItem('customWallpaper');
+            }
+        }
 
+        themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
         window.onload = function() {
-            const savedTheme = localStorage.getItem('selectedTheme') || 'light';
+            const savedTheme = localStorage.getItem('selectedTheme') || 'blue';
+            const savedWallpaper = localStorage.getItem('customWallpaper') || '';
             applyTheme(savedTheme);
             themeSelect.value = savedTheme;
+            if(savedWallpaper) {
+                document.body.style.backgroundImage = `url('${savedWallpaper}')`;
+                wallpaperSelect.value = 'custom';
+            }
         };
 
-        // URL Functions
+        // --- Utility Functions ---
+        function clearInputField(fieldId) {
+            document.getElementById(fieldId).value = '';
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        // --- URL Functions ---
         function parseUrl() {
             const urlStr = document.getElementById('url-input').value;
             if (!urlStr) return;
@@ -509,8 +773,13 @@ settings.theme</textarea>
                 const resultsDiv = document.getElementById('parsed-results');
                 const selectedParam = document.getElementById('param-select').value;
                 
+                if (selectedParam === 'custom_params') {
+                    openCustomParamsModal();
+                    return;
+                }
+
                 let html = '<h4>解析结果:</h4>';
-                if (selectedParam) {
+                if (selectedParam && selectedParam !== '') {
                     const value = searchParams.get(selectedParam);
                     html += `<div class="result-item"><strong>${selectedParam}:</strong> ${value || 'N/A'}</div>`;
                 } else {
@@ -562,14 +831,86 @@ settings.theme</textarea>
             }
         }
 
-        function clearResults() {
-            document.getElementById('parsed-results').innerHTML = '';
-            document.getElementById('comparison-results').innerHTML = '';
-            document.getElementById('url-input').value = '';
-            document.getElementById('correct-url-input').value = '';
+        function clearAllUrl() {
+            clearInputField('url-input');
+            clearInputField('correct-url-input');
+            document.getElementById('param-select').value = '';
+            clearResults('parsed-results');
+            clearResults('comparison-results');
         }
 
-        // JSON Functions
+        // --- Custom URL Params Modal ---
+        function openCustomParamsModal() {
+            document.getElementById('custom-params-modal').style.display = 'flex';
+            renderSavedParamsList();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function renderSavedParamsList() {
+            const container = document.getElementById('saved-custom-params-list');
+            container.innerHTML = '';
+            customUrlParams.forEach(param => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${param}</span>
+                    <button class="secondary" onclick="removeCustomParam('${param}')"><i class="fas fa-trash"></i></button>
+                `;
+                container.appendChild(li);
+            });
+        }
+
+        function addCustomParam() {
+            const input = document.getElementById('new-param-name');
+            const name = input.value.trim();
+            if (name && !customUrlParams.includes(name)) {
+                customUrlParams.push(name);
+                renderSavedParamsList();
+                input.value = '';
+            }
+        }
+
+        function removeCustomParam(name) {
+            customUrlParams = customUrlParams.filter(p => p !== name);
+            renderSavedParamsList();
+        }
+
+        function saveAndCloseParamsModal() {
+            localStorage.setItem('customUrlParams', JSON.stringify(customUrlParams));
+            closeModal('custom-params-modal');
+            // Update the main select dropdown options
+            const select = document.getElementById('param-select');
+            const options = Array.from(select.children).slice(0, 6); // Keep first 6 default options
+            select.innerHTML = '';
+            options.forEach(opt => select.appendChild(opt));
+            customUrlParams.forEach(param => {
+                const opt = document.createElement('option');
+                opt.value = param;
+                opt.textContent = param;
+                select.appendChild(opt);
+            });
+             const manageOpt = document.createElement('option');
+             manageOpt.value = 'custom_params';
+             manageOpt.textContent = '管理自定义参数...';
+             select.appendChild(manageOpt);
+        }
+
+        // Initialize custom params in dropdown on load
+        window.onload = function() {
+            // ... (existing onload code for theme/bg) ...
+            const select = document.getElementById('param-select');
+            customUrlParams.forEach(param => {
+                const opt = document.createElement('option');
+                opt.value = param;
+                opt.textContent = param;
+                select.appendChild(opt);
+            });
+        };
+
+
+        // --- JSON Functions ---
         function extractJsonFields() {
             const jsonText = document.getElementById('json-input').value;
             const pathsText = document.getElementById('field-paths').value;
@@ -613,7 +954,7 @@ settings.theme</textarea>
 
         function attachVerificationListeners() {
             document.querySelectorAll('#json-results .verification-input').forEach(input => {
-                input.removeEventListener('input', handleVerification); // 防止重复绑定
+                input.removeEventListener('input', handleVerification);
                 input.addEventListener('input', handleVerification);
             });
         }
@@ -627,7 +968,7 @@ settings.theme</textarea>
             const item = input.closest('.result-item');
             item.classList.remove('match', 'mismatch');
             
-            if (expected === '') return; // 如果清空了输入框，则移除所有状态
+            if (expected === '') return;
             
             if (actual == expected) {
                 item.classList.add('match');
@@ -636,13 +977,112 @@ settings.theme</textarea>
             }
         }
 
-        function clearJsonResults() {
-            document.getElementById('json-results').innerHTML = '';
-            document.getElementById('json-input').value = '';
-            document.getElementById('field-paths').value = '';
+        function addCustomFieldPath() {
+            const input = document.getElementById('new-field-path');
+            const path = input.value.trim();
+            if (path && !customJsonFields.includes(path)) {
+                customJsonFields.push(path);
+                localStorage.setItem('customJsonFields', JSON.stringify(customJsonFields));
+                renderSavedJsonFields();
+                input.value = '';
+            }
         }
 
-        // Time Functions
+        function renderSavedJsonFields() {
+            const container = document.getElementById('saved-custom-fields-json');
+            container.innerHTML = '';
+            customJsonFields.forEach(field => {
+                const div = document.createElement('div');
+                div.className = 'custom-field-item';
+                div.innerHTML = `
+                    <span onclick="insertFieldPathIntoTextarea('${field}')">${field}</span>
+                    <button class="secondary" onclick="removeCustomJsonField('${field}')"><i class="fas fa-trash"></i></button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function insertFieldPathIntoTextarea(path) {
+            const textarea = document.getElementById('field-paths');
+            const current = textarea.value;
+            if (!current.split('\n').includes(path)) {
+                textarea.value = current ? current + '\n' + path : path;
+            }
+        }
+
+        function removeCustomJsonField(path) {
+            customJsonFields = customJsonFields.filter(f => f !== path);
+            localStorage.setItem('customJsonFields', JSON.stringify(customJsonFields));
+            renderSavedJsonFields();
+        }
+
+        function clearAllJson() {
+            clearInputField('json-input');
+            clearInputField('field-paths');
+            clearResults('json-results');
+            // Optionally also clear verification results if needed
+            document.getElementById('verification-results').innerHTML = '<p>请先在左侧执行“提取”操作。</p>';
+        }
+
+        // Initialize saved fields on load
+        window.onload = function() {
+            // ... (existing onload code) ...
+            renderSavedJsonFields();
+        };
+
+
+        // --- Time Functions ---
+        function convertTime() {
+            const conversionType = document.getElementById('conversion-type').value;
+            const inputValue = parseFloat(document.getElementById('input-value').value);
+
+            if (isNaN(inputValue) || inputValue < 0) {
+                document.getElementById('time-conversion-result').innerHTML = '<div class="result-item error">请输入有效的非负数字！</div>';
+                return;
+            }
+
+            let resultText = '';
+
+            switch (conversionType) {
+                case 'minutes-to-hours-minutes':
+                    const hours = Math.floor(inputValue / 60);
+                    const minutes = inputValue % 60;
+                    const seconds = 0;
+                    resultText = `${hours} 小时 ${minutes} 分 ${seconds} 秒`;
+                    break;
+
+                case 'minutes-to-minutes-seconds':
+                    const mins = Math.floor(inputValue);
+                    const secsFromMins = Math.round((inputValue - mins) * 60);
+                    resultText = `${mins} 分 ${secsFromMins} 秒`;
+                    break;
+
+                case 'hours-to-minutes-seconds':
+                    const totalMins = Math.floor(inputValue * 60);
+                    const secsFromHours = Math.round((inputValue * 60 - totalMins) * 60);
+                    resultText = `${totalMins} 分 ${secsFromHours} 秒`;
+                    break;
+
+                case 'seconds-to-minutes-seconds':
+                    const minsFromSecs = Math.floor(inputValue / 60);
+                    const remainingSecs = Math.round(inputValue % 60);
+                    resultText = `${minsFromSecs} 分 ${remainingSecs} 秒`;
+                    break;
+
+                case 'milliseconds-to-minutes-seconds':
+                    const totalSecs = Math.floor(inputValue / 1000);
+                    const minsFromMs = Math.floor(totalSecs / 60);
+                    const finalSecs = totalSecs % 60;
+                    resultText = `${minsFromMs} 分 ${finalSecs} 秒`;
+                    break;
+
+                default:
+                    resultText = '未知转换类型';
+            }
+
+            document.getElementById('time-conversion-result').innerHTML = `<div class="result-item match"><strong>转换结果:</strong> ${resultText}</div>`;
+        }
+
         function convertTimestamp() {
             const ts = parseFloat(document.getElementById('timestamp-input').value);
             if (isNaN(ts)) {
@@ -653,17 +1093,6 @@ settings.theme</textarea>
             document.getElementById('timestamp-result').innerHTML = `<div class="result-item"><strong>转换结果:</strong> ${d.toLocaleString('zh-CN')}</div>`;
         }
 
-        function convertMinutes() {
-            const mins = parseInt(document.getElementById('minutes-input').value);
-            if (isNaN(mins) || mins < 0) {
-                document.getElementById('time-format-result').innerHTML = '<div class="result-item error">请输入有效的正整数分钟！</div>';
-                return;
-            }
-            const h = Math.floor(mins / 60);
-            const m = mins % 60;
-            const s = 0;
-            document.getElementById('time-format-result').innerHTML = `<div class="result-item"><strong>转换结果:</strong> ${mins} 分钟 = ${h} 小时 ${m} 分 ${s} 秒</div>`;
-        }
     </script>
 </body>
 </html>
