@@ -30,26 +30,99 @@
 
         .container {
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 40px auto 20px;
             background-color: var(--card-bg);
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
         }
 
         h1 {
             text-align: center;
             color: var(--text-color);
+            margin-bottom: 20px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(180px, 240px) 1fr;
+            gap: 20px;
+        }
+
+        .module-nav {
+            background: linear-gradient(135deg, #fff1f5 0%, #ffecf6 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 90px;
+            height: fit-content;
+        }
+
+        .module-nav h2 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: #a82d6f;
+        }
+
+        .module-nav ul {
+            padding: 0;
+            margin: 12px 0 0;
+            list-style: none;
+        }
+
+        .module-nav li {
+            margin: 8px 0;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.25s;
+            color: #7a215f;
+            font-weight: 600;
+        }
+
+        .module-nav li:hover, .module-nav li.active {
+            background-color: rgba(255, 152, 181, 0.2);
+        }
+
+        .modules {
+            display: grid;
+            gap: 18px;
+        }
+
+        .module-card {
+            background: linear-gradient(120deg, rgba(255,255,255,.95), rgba(255,255,255,.8));
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+            transition: transform 0.2s;
+        }
+
+        .module-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .module-card h2 {
+            margin: 0 0 12px;  
+            color: #c2185b;
         }
 
         .theme-selector {
             position: fixed;
             top: 20px;
             right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         label {
@@ -60,9 +133,9 @@
 
         input[type="text"], input[type="number"], textarea, select {
             width: 100%;
-            padding: 8px 12px;
+            padding: 10px 12px;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 8px;
             background-color: var(--input-bg);
             color: var(--text-color);
             box-sizing: border-box;
@@ -73,9 +146,11 @@
             color: white;
             border: none;
             padding: 10px 15px;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
+            margin-right: 8px;
+            margin-top: 10px;
         }
 
         button:hover {
@@ -83,18 +158,20 @@
         }
 
         .result-container {
-            margin-top: 20px;
-            padding: 15px;
+            margin-top: 16px;
+            padding: 14px;
             border: 1px dashed var(--border-color);
-            border-radius: 4px;
+            border-radius: 10px;
             background-color: var(--input-bg);
         }
 
         .param-item {
-            margin: 5px 0;
-            padding: 5px;
-            border-left: 3px solid var(--success-color);
+            margin: 6px 0;
+            padding: 8px;
+            border-left: 4px solid var(--success-color);
             word-break: break-all;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.6);
         }
         
         .param-item.error {
@@ -125,7 +202,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🌐 URL 解析 & 分析工具</h1>
+        <h1>� 可爱模块化 URL 工具箱</h1>
 
         <!-- 主题选择器 -->
         <div class="theme-selector">
@@ -138,70 +215,74 @@
             </select>
         </div>
 
-        <div class="grid">
-            <div class="form-section">
-                <h2>🔍 URL 解析</h2>
-                <div class="form-group">
-                    <label for="url-input">请输入 URL:</label>
-                    <textarea id="url-input" placeholder="例如: https://example.com/page?param1=value1&param2=value2"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="param-select">选择要提取的参数 (或添加自定义):</label>
-                    <select id="param-select">
-                        <option value="">-- 常用参数 --</option>
-                        <option value="utm_source">utm_source</option>
-                        <option value="utm_medium">utm_medium</option>
-                        <option value="utm_campaign">utm_campaign</option>
-                        <option value="id">id</option>
-                        <option value="ref">ref</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <input type="text" id="custom-param-input" placeholder="输入自定义参数名...">
-                    <button onclick="addCustomParam()">➕ 添加到列表</button>
-                </div>
+        <div class="dashboard">
+            <aside class="module-nav">
+                <h2>✨ 功能列表</h2>
+                <ul>
+                    <li id="nav-url" class="active" onclick="showModule('url')">🔍 URL 解析</li>
+                    <li id="nav-compare" onclick="showModule('compare')">📋 URL 对比验证</li>
+                    <li id="nav-timestamp" onclick="showModule('timestamp')">⏰ 时间戳转换</li>
+                    <li id="nav-duration" onclick="showModule('duration')">⏱️ 分钟转时分秒</li>
+                </ul>
+            </aside>
 
-                <button onclick="parseUrl()">🚀 解析 URL</button>
-                <button onclick="clearResults()">🗑️ 清空结果</button>
+            <main class="modules">
+                <section id="module-url" class="module-card">
+                    <h2>🔍 URL 解析</h2>
+                    <div class="form-group">
+                        <label for="url-input">请输入 URL:</label>
+                        <textarea id="url-input" placeholder="例如: https://example.com/page?param1=value1&param2=value2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="param-select">选择要提取的参数 (或添加自定义):</label>
+                        <select id="param-select">
+                            <option value="">-- 常用参数 --</option>
+                            <option value="utm_source">utm_source</option>
+                            <option value="utm_medium">utm_medium</option>
+                            <option value="utm_campaign">utm_campaign</option>
+                            <option value="id">id</option>
+                            <option value="ref">ref</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="custom-param-input" placeholder="输入自定义参数名...">
+                        <button onclick="addCustomParam()">➕ 添加</button>
+                    </div>
+                    <button onclick="parseUrl()">解析 URL</button>
+                    <button onclick="clearResults()">清空结果</button>
+                    <div id="parsed-results" class="result-container"></div>
+                </section>
 
-                <div id="parsed-results" class="result-container"></div>
-            </div>
+                <section id="module-compare" class="module-card" style="display:none;">
+                    <h2>📋 URL 对比验证</h2>
+                    <div class="form-group">
+                        <label for="correct-url-input">请输入正确的参考 URL:</label>
+                        <textarea id="correct-url-input" placeholder="粘贴原始或正确的URL进行比对..."></textarea>
+                    </div>
+                    <button onclick="compareUrls()">开始比对</button>
+                    <div id="comparison-results" class="result-container"></div>
+                </section>
 
-            <div class="form-section">
-                <h2>📋 对比验证</h2>
-                <div class="form-group">
-                    <label for="correct-url-input">请输入正确的参考 URL:</label>
-                    <textarea id="correct-url-input" placeholder="粘贴原始或正确的URL进行比对..."></textarea>
-                </div>
-                
-                <button onclick="compareUrls()">🔍 开始比对</button>
+                <section id="module-timestamp" class="module-card" style="display:none;">
+                    <h2>⏰ 时间戳转换</h2>
+                    <div class="form-group">
+                        <label for="timestamp-input">输入时间戳 (秒或毫秒):</label>
+                        <input type="number" id="timestamp-input" placeholder="例如: 1700000000 或 1700000000000">
+                    </div>
+                    <button onclick="convertTimestamp()">转换为日期</button>
+                    <div id="timestamp-result" class="result-container"></div>
+                </section>
 
-                <div id="comparison-results" class="result-container"></div>
-            </div>
-        </div>
-
-        <div class="grid">
-            <div class="timestamp-converter">
-                <h2>⏰ 时间戳转换器</h2>
-                <div class="form-group">
-                    <label for="timestamp-input">输入时间戳 (秒或毫秒):</label>
-                    <input type="number" id="timestamp-input" placeholder="例如: 1700000000 或 1700000000000">
-                </div>
-                <button onclick="convertTimestamp()">🔄 转换为日期</button>
-                <div id="timestamp-result" class="result-container"></div>
-            </div>
-
-            <div class="time-format-converter">
-                <h2>⏱️ 时间格式转换器</h2>
-                <div class="form-group">
-                    <label for="minutes-input">输入分钟数:</label>
-                    <input type="number" id="minutes-input" placeholder="例如: 125">
-                </div>
-                <button onclick="convertMinutes()">🔄 转换为时分秒</button>
-                <div id="time-format-result" class="result-container"></div>
-            </div>
+                <section id="module-duration" class="module-card" style="display:none;">
+                    <h2>⏱️ 分钟转时分秒</h2>
+                    <div class="form-group">
+                        <label for="minutes-input">输入分钟数:</label>
+                        <input type="number" id="minutes-input" placeholder="例如: 125">
+                    </div>
+                    <button onclick="convertMinutes()">转换</button>
+                    <div id="time-format-result" class="result-container"></div>
+                </section>
+            </main>
         </div>
     </div>
 
@@ -239,6 +320,7 @@
             const savedTheme = localStorage.getItem('selectedTheme') || 'light';
             applyTheme(savedTheme);
             themeSelect.value = savedTheme;
+            showModule('url');
         };
 
         // --- URL 解析 ---
@@ -262,6 +344,22 @@
         }
 
         populateParamSelect();
+
+        function showModule(moduleName) {
+            const modules = ['url', 'compare', 'timestamp', 'duration'];
+            modules.forEach((key) => {
+                const section = document.getElementById(`module-${key}`);
+                const navItem = document.getElementById(`nav-${key}`);
+                if (section) section.style.display = (key === moduleName ? 'block' : 'none');
+                if (navItem) {
+                    if (key === moduleName) {
+                        navItem.classList.add('active');
+                    } else {
+                        navItem.classList.remove('active');
+                    }
+                }
+            });
+        }
 
         function addCustomParam() {
             const input = document.getElementById('custom-param-input');
