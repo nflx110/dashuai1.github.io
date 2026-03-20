@@ -3,624 +3,601 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>喜羊羊工具箱 - URL & JSON 解析器</title>
-    <style id="theme-style">
-        /* 默认浅色主题 (喜羊羊风格) */
+    <title>智能数据解析工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
         :root {
-            --bg-color: #f9f3e9; /* 米白背景 */
-            --text-color: #333333;
-            --border-color: #e0cfa9; /* 浅棕边框 */
-            --input-bg: #fefaf3; /* 浅米色输入框 */
-            --button-bg: #34c759; /* 喜羊羊绿 */
-            --button-hover-bg: #2db04f;
-            --highlight-color: #ffcc00; /* 喜羊羊黄 */
-            --error-color: #ff3b30; /* 错误红 */
-            --success-color: #4cd964; /* 成功绿 */
-            --card-bg: #ffffff;
-            --tab-active-bg: #34c759;
-            --tab-inactive-bg: #f0e6d2;
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --success-color: #4ade80;
+            --warning-color: #facc15;
+            --danger-color: #f87171;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Comic Sans MS', 'Marker Felt', 'Arial Rounded MT Bold', sans-serif, 'PingFang SC', 'Microsoft YaHei';
-            background: var(--bg-color) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="%23e0cfa9" opacity="0.3"/><circle cx="50" cy="50" r="1.5" fill="%23e0cfa9" opacity="0.3"/></svg>') repeat;
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 0;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 40px auto 20px;
-            background-color: var(--card-bg);
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color);
-            position: relative;
-            overflow: hidden;
+            width: 100%;
         }
 
-        .container::before {
-            content: "";
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            background: inherit;
-            filter: blur(20px);
-            z-index: -1;
-            margin: -20px;
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         h1 {
-            text-align: center;
-            color: #34c759;
-            font-size: 2.5em;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            animation: glow 2s infinite alternate;
-        }
-
-        @keyframes glow {
-            from { text-shadow: 0 0 5px #fff, 0 0 10px #34c759, 0 0 15px #34c759; }
-            to { text-shadow: 0 0 10px #fff, 0 0 20px #34c759, 0 0 30px #34c759; }
-        }
-
-        .theme-selector {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-            z-index: 1000;
-        }
-
-        /* Tab 样式 */
-        .tab-header {
+            font-size: 1.8rem;
+            font-weight: 700;
             display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            gap: 5px;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .theme-selector select {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-selector select option {
+            background-color: var(--surface-color);
+            color: var(--text-primary);
+        }
+
+        .tabs {
+            display: flex;
+            background-color: var(--surface-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow-md);
         }
 
         .tab-button {
-            background-color: var(--tab-inactive-bg);
-            color: #8b5a2b;
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: none;
             border: none;
-            padding: 12px 20px;
-            margin: 0 5px;
+            color: var(--text-secondary);
+            font-weight: 600;
             cursor: pointer;
-            border-radius: 50px;
-            font-weight: bold;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1rem;
         }
 
-        .tab-button:hover {
-            transform: scale(1.05);
-            background-color: #e8dcc5;
+        .tab-button i {
+            font-size: 1.1rem;
+        }
+
+        .tab-button:hover:not(.active) {
+            background-color: #f1f5f9;
+            color: var(--text-primary);
         }
 
         .tab-button.active {
-            background-color: var(--tab-active-bg);
+            background-color: var(--primary-color);
             color: white;
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
         .tab-content {
             display: none;
-            animation: fadeInScale 0.4s ease forwards;
-        }
-
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            animation: fadeIn 0.3s ease-out;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        .form-section {
-            background: linear-gradient(120deg, rgba(255,255,255,.95), rgba(255,255,255,.8));
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 18px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(500px, 100%), 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
             transition: transform 0.2s, box-shadow 0.2s;
-            margin-bottom: 20px;
         }
 
-        .form-section:hover {
+        .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-lg);
         }
 
-        h2 {
-            margin: 0 0 12px;
-            color: #c2185b;
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0.5rem;
         }
 
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 1rem;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #5a3e36;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        input[type="text"], input[type="number"], textarea, select {
+        input, textarea, select {
             width: 100%;
-            padding: 10px 12px;
+            padding: 0.75rem 1rem;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            box-sizing: border-box;
-            transition: border-color 0.3s;
+            border-radius: var(--radius-md);
+            background-color: #f9fafb;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+        input:focus, textarea:focus, select:focus {
             outline: none;
-            border-color: var(--button-bg);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
         }
 
         button {
-            background-color: var(--button-bg);
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-md);
             cursor: pointer;
-            font-size: 14px;
-            margin-right: 8px;
-            margin-top: 10px;
-            transition: background-color 0.3s, transform 0.2s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s, transform 0.1s;
         }
 
         button:hover {
-            background-color: var(--button-hover-bg);
-            transform: scale(1.05);
+            background-color: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background-color: #f1f5f9;
+            color: var(--text-primary);
+        }
+
+        button.secondary:hover {
+            background-color: #e2e8f0;
         }
 
         .result-container {
-            margin-top: 16px;
-            padding: 14px;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border-radius: var(--radius-md);
             border: 1px dashed var(--border-color);
-            border-radius: 10px;
-            background-color: var(--input-bg);
-            min-height: 50px;
+            min-height: 100px;
         }
 
-        .param-item, .json-item {
-            margin: 6px 0;
-            padding: 8px;
-            border-left: 4px solid var(--success-color);
+        .result-item {
+            padding: 0.75rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+            font-family: monospace;
             word-break: break-all;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.6);
-            display: flex;
-            flex-direction: column;
+            background-color: white;
+            border-left: 3px solid var(--primary-color);
         }
 
-        .json-item {
-            border-left-color: #007AFF;
-        }
-
-        .param-item.error, .json-item.error {
-            border-left-color: var(--error-color);
-            background-color: rgba(244, 67, 54, 0.1);
-        }
-
-        .param-item.match, .json-item.correct {
+        .result-item.match {
             border-left-color: var(--success-color);
-            background-color: rgba(76, 175, 80, 0.1);
+            background-color: #f0fdf4;
         }
 
-        .param-item.mismatch, .json-item.mismatch {
-            border-left-color: var(--error-color);
-            background-color: rgba(244, 67, 54, 0.1);
+        .result-item.mismatch {
+            border-left-color: var(--warning-color);
+            background-color: #fefce8;
         }
 
-        .comparison-status, .verification-status {
-            font-size: 0.9em;
-            margin-top: 4px;
+        .result-item.error {
+            border-left-color: var(--danger-color);
+            background-color: #fef2f2;
         }
 
-        .expected-input {
-            margin-top: 8px;
-            padding: 6px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 0.9em;
+        .verification-input {
+            margin-top: 0.5rem;
+            width: calc(100% - 2rem);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1> 🐑 喜羊羊工具箱</h1>
-
-        <!-- 主题选择器 -->
-        <div class="theme-selector">
-            <label for="theme-select">🎨 切换主题: </label>
-            <select id="theme-select">
-                <option value="light">默认</option>
-                <option value="dark">暗黑</option>
-                <option value="pink">粉红</option>
-                <option value="green">护眼绿</option>
-            </select>
-        </div>
-
-        <!-- Tab 按钮 -->
-        <div class="tab-header">
-            <button class="tab-button active" onclick="switchTab('url-tab')">
-                <span>🔗</span> URL 解析
-            </button>
-            <button class="tab-button" onclick="switchTab('json-tab')">
-                <span>📄</span> JSON 解析
-            </button>
-            <button class="tab-button" onclick="switchTab('time-tab')">
-                <span>⏱️</span> 时间转换
-            </button>
-        </div>
-
-        <!-- Tab 内容区 -->
-        <!-- URL Tab -->
-        <div id="url-tab" class="tab-content active">
-            <div class="grid">
-                <div class="form-section">
-                    <h2>🔍 解析与提取</h2>
-                    <div class="form-group">
-                        <label for="url-input">请输入 URL:</label>
-                        <textarea id="url-input" placeholder="例如: https://example.com/page?param1=value1&param2=value2"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="param-select">选择要提取的参数 (或添加自定义):</label>
-                        <select id="param-select">
-                            <option value="">-- 常用参数 --</option>
-                            <option value="utm_source">utm_source</option>
-                            <option value="utm_medium">utm_medium</option>
-                            <option value="utm_campaign">utm_campaign</option>
-                            <option value="id">id</option>
-                            <option value="ref">ref</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <input type="text" id="custom-param-input" placeholder="输入自定义参数名...">
-                        <button onclick="addCustomParam()">➕ 添加</button>
-                    </div>
-
-                    <button onclick="parseUrl()">🚀 解析 URL</button>
-                    <button onclick="clearResults()">🗑️ 清空结果</button>
-
-                    <div id="parsed-results" class="result-container"></div>
-                </div>
-
-                <div class="form-section">
-                    <h2>📋 对比验证</h2>
-                    <div class="form-group">
-                        <label for="correct-url-input">请输入正确的参考 URL:</label>
-                        <textarea id="correct-url-input" placeholder="粘贴原始或正确的URL进行比对..."></textarea>
-                    </div>
-                    
-                    <button onclick="compareUrls()">🔍 开始比对</button>
-
-                    <div id="comparison-results" class="result-container"></div>
-                </div>
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-wrench"></i> 智能数据解析工具</h1>
+            <div class="theme-selector">
+                <select id="theme-select">
+                    <option value="light">默认主题</option>
+                    <option value="dark">深色模式</option>
+                </select>
             </div>
         </div>
+    </header>
 
-        <!-- JSON Tab -->
-        <div id="json-tab" class="tab-content">
-            <div class="grid">
-                <div class="form-section">
-                    <h2>📄 解析与提取</h2>
-                    <div class="form-group">
-                        <label for="json-input">请输入 JSON:</label>
-                        <textarea id="json-input" placeholder='{ "user": { "name": "喜羊羊", "id": 1 } }' rows="6">{
-  "request_id": "req_123",
-  "user": {
-    "name": "李四",
-    "device": {
-      "os": "Android"
-    }
-  },
-  "ads": [
-    {"ad_id": "ad001", "click_url": "https://track.com/c?id=ad001"},
-    {"ad_id": "ad002"}
-  ]
-}</textarea>
+    <div class="app-container">
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="url-tab">
+                <i class="fas fa-link"></i> URL 解析
+            </button>
+            <button class="tab-button" data-tab="json-tab">
+                <i class="fas fa-file-code"></i> JSON 解析
+            </button>
+            <button class="tab-button" data-tab="time-tab">
+                <i class="fas fa-clock"></i> 时间转换
+            </button>
+        </nav>
+
+        <main>
+            <!-- URL Tab -->
+            <section id="url-tab" class="tab-content active">
+                <div class="card-grid">
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-cogs"></i> 解析与提取</h3>
+                        <div class="form-group">
+                            <label for="url-input"><i class="fas fa-globe-asia"></i> 输入URL</label>
+                            <textarea id="url-input" placeholder="https://example.com/path?param1=value1&param2=value2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="param-select"><i class="fas fa-list"></i> 选择参数</label>
+                            <select id="param-select">
+                                <option value="">全部参数</option>
+                                <option value="utm_source">utm_source</option>
+                                <option value="utm_medium">utm_medium</option>
+                                <option value="utm_campaign">utm_campaign</option>
+                                <option value="id">id</option>
+                                <option value="ref">ref</option>
+                            </select>
+                        </div>
+                        <div class="button-group">
+                            <button onclick="parseUrl()"><i class="fas fa-play"></i> 解析</button>
+                            <button class="secondary" onclick="clearResults()"><i class="fas fa-broom"></i> 清空</button>
+                        </div>
+                        <div id="parsed-results" class="result-container"></div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="field-paths">输入字段路径（每行一个）:</label>
-                        <textarea id="field-paths" placeholder="user.name&#10;user.device.os&#10;ads[0].ad_id" rows="4">user.name
-user.device.os
-ads[0].ad_id
-ads[1].click_url
-non.existent.field</textarea>
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-exchange-alt"></i> 对比验证</h3>
+                        <div class="form-group">
+                            <label for="correct-url-input"><i class="fas fa-check-circle"></i> 参考URL</label>
+                            <textarea id="correct-url-input" placeholder="粘贴正确的URL进行比对..."></textarea>
+                        </div>
+                        <button onclick="compareUrls()"><i class="fas fa-search"></i> 开始比对</button>
+                        <div id="comparison-results" class="result-container"></div>
                     </div>
-
-                    <button onclick="extractJsonFields()">🚀 提取字段</button>
-                    <button onclick="clearJsonResults()">🗑️ 清空结果</button>
-
-                    <div id="json-results" class="result-container"></div>
                 </div>
+            </section>
 
-                <div class="form-section">
-                    <h2>✅ 验证比对</h2>
-                    <p>在下方结果中，每个字段旁的输入框可用于输入期望值进行比对。</p>
-                    <div id="verification-results" class="result-container">
-                        <p>请先执行“提取字段”操作。</p>
+            <!-- JSON Tab -->
+            <section id="json-tab" class="tab-content">
+                <div class="card-grid">
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-cogs"></i> 解析与提取</h3>
+                        <div class="form-group">
+                            <label for="json-input"><i class="fas fa-code"></i> 输入JSON</label>
+                            <textarea id="json-input" placeholder='{ "user": { "name": "张三" } }'></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="field-paths"><i class="fas fa-key"></i> 字段路径 (每行一个)</label>
+                            <textarea id="field-paths" placeholder="user.name&#10;user.id">user.name
+user.id
+settings.theme</textarea>
+                        </div>
+                        <div class="button-group">
+                            <button onclick="extractJsonFields()"><i class="fas fa-play"></i> 提取</button>
+                            <button class="secondary" onclick="clearJsonResults()"><i class="fas fa-broom"></i> 清空</button>
+                        </div>
+                        <div id="json-results" class="result-container"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-tasks"></i> 验证中心</h3>
+                        <p>在上方提取结果中，每个字段旁会出现输入框，输入期望值即可实时比对。</p>
+                        <div id="verification-results" class="result-container">
+                            <p>请先在左侧执行“提取”操作。</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- Time Tab -->
-        <div id="time-tab" class="tab-content">
-            <div class="grid">
-                <div class="form-section">
-                    <h2>⏰ 时间戳转换器</h2>
-                    <div class="form-group">
-                        <label for="timestamp-input">输入时间戳 (秒或毫秒):</label>
-                        <input type="number" id="timestamp-input" placeholder="例如: 1700000000 或 1700000000000">
+            <!-- Time Tab -->
+            <section id="time-tab" class="tab-content">
+                <div class="card-grid">
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-calendar-day"></i> 时间戳转换</h3>
+                        <div class="form-group">
+                            <label for="timestamp-input"><i class="fas fa-hourglass-half"></i> 输入时间戳 (秒或毫秒)</label>
+                            <input type="number" id="timestamp-input" placeholder="例如: 1700000000 或 1700000000000">
+                        </div>
+                        <button onclick="convertTimestamp()"><i class="fas fa-sync-alt"></i> 转换</button>
+                        <div id="timestamp-result" class="result-container"></div>
                     </div>
-                    <button onclick="convertTimestamp()">🔄 转换为日期</button>
-                    <div id="timestamp-result" class="result-container"></div>
-                </div>
-
-                <div class="form-section">
-                    <h2>⏱️ 时间格式转换器</h2>
-                    <div class="form-group">
-                        <label for="minutes-input">输入分钟数:</label>
-                        <input type="number" id="minutes-input" placeholder="例如: 125">
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-hourglass-end"></i> 分钟转时分秒</h3>
+                        <div class="form-group">
+                            <label for="minutes-input"><i class="fas fa-stopwatch"></i> 输入分钟数</label>
+                            <input type="number" id="minutes-input" placeholder="例如: 125">
+                        </div>
+                        <button onclick="convertMinutes()"><i class="fas fa-sync-alt"></i> 转换</button>
+                        <div id="time-format-result" class="result-container"></div>
                     </div>
-                    <button onclick="convertMinutes()">🔄 转换为时分秒</button>
-                    <div id="time-format-result" class="result-container"></div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
     </div>
 
+    <footer>
+        <p>智能数据解析工具 &copy; 2026</p>
+    </footer>
+
     <script>
-        // --- Tab 切换 ---
-        function switchTab(tabId) {
-            // 隐藏所有 tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            // 移除所有 tab button 的 active 类
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.remove('active');
-            });
+        // Tab Switching
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-tab');
 
-            // 显示目标 tab content
-            document.getElementById(tabId).classList.add('active');
-            // 激活对应的 tab button
-            event.currentTarget.classList.add('active');
-        }
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
 
-        // --- 主题切换 ---
+                document.getElementById(targetTab).classList.add('active');
+                button.classList.add('active');
+            });
+        });
+
+        // Theme Switching
         const themeSelect = document.getElementById('theme-select');
-        const styleElement = document.getElementById('theme-style');
+        const root = document.documentElement;
 
         const themes = {
-            light: `
-                :root { --bg-color: #f9f3e9; --text-color: #333333; --border-color: #e0cfa9; --input-bg: #fefaf3; --button-bg: #34c759; --button-hover-bg: #2db04f; --card-bg: #ffffff; --tab-active-bg: #34c759; --tab-inactive-bg: #f0e6d2; }
-            `,
-            dark: `
-                :root { --bg-color: #1e1e1e; --text-color: #e0e0e0; --border-color: #444; --input-bg: #2d2d2d; --button-bg: #0d6efd; --button-hover-bg: #0b5ed7; --card-bg: #2d2d2d; --tab-active-bg: #0d6efd; --tab-inactive-bg: #3a3a3a; }
-            `,
-            pink: `
-                :root { --bg-color: #fff5f7; --text-color: #880e4f; --border-color: #f8bbd0; --input-bg: #fce4ec; --button-bg: #e91e63; --button-hover-bg: #c2185b; --card-bg: #fce4ec; --tab-active-bg: #e91e63; --tab-inactive-bg: #f8bbd0; }
-            `,
-            green: `
-                :root { --bg-color: #f0f8f0; --text-color: #2e7d32; --border-color: #a5d6a7; --input-bg: #e8f5e9; --button-bg: #4caf50; --button-hover-bg: #388e3c; --card-bg: #e8f5e9; --tab-active-bg: #4caf50; --tab-inactive-bg: #c8e6c9; }
-            `
+            light: {
+                '--primary-color': '#4361ee',
+                '--secondary-color': '#3f37c9',
+                '--background-color': '#f8fafc',
+                '--surface-color': '#ffffff',
+                '--text-primary': '#1e293b',
+                '--text-secondary': '#64748b',
+                '--border-color': '#e2e8f0',
+            },
+            dark: {
+                '--primary-color': '#809fff',
+                '--secondary-color': '#6d61d6',
+                '--background-color': '#0f172a',
+                '--surface-color': '#1e293b',
+                '--text-primary': '#f1f5f9',
+                '--text-secondary': '#94a3b8',
+                '--border-color': '#334155',
+            }
         };
 
         function applyTheme(themeName) {
-            styleElement.textContent = themes[themeName] || themes.light;
+            const themeVars = themes[themeName] || themes.light;
+            Object.entries(themeVars).forEach(([prop, val]) => {
+                root.style.setProperty(prop, val);
+            });
+            localStorage.setItem('selectedTheme', themeName);
         }
 
         themeSelect.addEventListener('change', (e) => {
             applyTheme(e.target.value);
-            localStorage.setItem('selectedTheme', e.target.value);
         });
 
-        // 页面加载时恢复上次选择的主题
         window.onload = function() {
             const savedTheme = localStorage.getItem('selectedTheme') || 'light';
             applyTheme(savedTheme);
             themeSelect.value = savedTheme;
         };
 
-        // --- URL 功能 ---
-        let customParams = JSON.parse(localStorage.getItem('customParams')) || [];
-
-        function populateParamSelect() {
-            const select = document.getElementById('param-select');
-            select.innerHTML = '<option value="">-- 常用参数 --</option>' +
-                               '<option value="utm_source">utm_source</option>' +
-                               '<option value="utm_medium">utm_medium</option>' +
-                               '<option value="utm_campaign">utm_campaign</option>' +
-                               '<option value="id">id</option>' +
-                               '<option value="ref">ref</option>';
-            
-            customParams.forEach(param => {
-                const option = document.createElement('option');
-                option.value = param;
-                option.textContent = param;
-                select.appendChild(option);
-            });
-        }
-
-        populateParamSelect();
-
-        function addCustomParam() {
-            const input = document.getElementById('custom-param-input');
-            const paramName = input.value.trim();
-            if (paramName && !customParams.includes(paramName)) {
-                customParams.push(paramName);
-                localStorage.setItem('customParams', JSON.stringify(customParams));
-                populateParamSelect();
-                input.value = '';
-            }
-        }
-
+        // URL Functions
         function parseUrl() {
             const urlStr = document.getElementById('url-input').value;
-            if (!urlStr) {
-                alert('请输入一个 URL！');
-                return;
-            }
+            if (!urlStr) return;
             try {
                 const url = new URL(urlStr);
                 const searchParams = new URLSearchParams(url.search);
-                const selectedParamKey = document.getElementById('param-select').value;
-                
                 const resultsDiv = document.getElementById('parsed-results');
-                let html = `<h3>解析结果:</h3>`;
+                const selectedParam = document.getElementById('param-select').value;
                 
-                if (selectedParamKey) {
-                    const value = searchParams.get(selectedParamKey);
-                    html += `<div class="param-item"><strong>${selectedParamKey}:</strong> ${value || 'N/A'}</div>`;
+                let html = '<h4>解析结果:</h4>';
+                if (selectedParam) {
+                    const value = searchParams.get(selectedParam);
+                    html += `<div class="result-item"><strong>${selectedParam}:</strong> ${value || 'N/A'}</div>`;
                 } else {
-                    // If no specific param is selected, list all
                     for (const [key, value] of searchParams) {
-                        html += `<div class="param-item"><strong>${key}:</strong> ${value}</div>`;
+                        html += `<div class="result-item"><strong>${key}:</strong> ${value}</div>`;
                     }
                 }
                 resultsDiv.innerHTML = html;
             } catch (e) {
-                alert('无效的 URL 格式! ' + e.message);
+                alert('URL格式错误: ' + e.message);
             }
-        }
-
-        function clearResults() {
-            document.getElementById('parsed-results').innerHTML = '';
-            document.getElementById('url-input').value = '';
-            document.getElementById('comparison-results').innerHTML = '';
-            document.getElementById('correct-url-input').value = '';
         }
 
         function compareUrls() {
             const userUrlStr = document.getElementById('url-input').value;
             const correctUrlStr = document.getElementById('correct-url-input').value;
             if (!userUrlStr || !correctUrlStr) {
-                alert('请同时输入待比较的URL和正确的参考URL!');
+                alert('请输入待比较和参考的URL！');
                 return;
             }
-
             try {
                 const userUrl = new URL(userUrlStr);
                 const correctUrl = new URL(correctUrlStr);
-
                 const userParams = new Map(new URLSearchParams(userUrl.search));
                 const correctParams = new Map(new URLSearchParams(correctUrl.search));
-
                 const allKeys = new Set([...userParams.keys(), ...correctParams.keys()]);
                 const resultsDiv = document.getElementById('comparison-results');
 
-                let html = `<h3>比对结果:</h3>`;
+                let html = '<h4>比对结果:</h4>';
                 for (const key of allKeys) {
-                    const userValue = userParams.get(key);
-                    const correctValue = correctParams.get(key);
-                    
-                    let className = '';
+                    const userVal = userParams.get(key);
+                    const correctVal = correctParams.get(key);
+                    let cls = 'result-item';
                     let status = '';
-                    if (userValue === undefined) {
-                        className = 'error';
-                        status = ' <span style="color: red;">(缺失)</span>';
-                    } else if (correctValue === undefined) {
-                        className = 'error';
-                        status = ' <span style="color: red;">(多余)</span>';
-                    } else if (userValue !== correctValue) {
-                        className = 'mismatch';
-                        status = ` <span style="color: orange;">(不匹配: 应为 "${correctValue}")</span>`;
+                    if (userVal === undefined) {
+                        cls += ' error'; status = ' (缺失)';
+                    } else if (correctVal === undefined) {
+                        cls += ' error'; status = ' (多余)';
+                    } else if (userVal !== correctVal) {
+                        cls += ' mismatch'; status = ` (应为: ${correctVal})`;
                     } else {
-                        className = 'match';
-                        status = ` <span style="color: green;">(匹配)</span>`;
+                        cls += ' match'; status = ' (匹配)';
                     }
-                    
-                    html += `<div class="param-item ${className}"><strong>${key}:</strong> ${userValue || 'N/A'}${status}</div>`;
+                    html += `<div class="${cls}"><strong>${key}:</strong> ${userVal || 'N/A'} <small>${status}</small></div>`;
                 }
                 resultsDiv.innerHTML = html;
             } catch (e) {
-                alert('URL 格式错误，请检查输入! ' + e.message);
+                alert('URL格式错误: ' + e.message);
             }
         }
 
-        // --- JSON 功能 ---
+        function clearResults() {
+            document.getElementById('parsed-results').innerHTML = '';
+            document.getElementById('comparison-results').innerHTML = '';
+            document.getElementById('url-input').value = '';
+            document.getElementById('correct-url-input').value = '';
+        }
+
+        // JSON Functions
         function extractJsonFields() {
             const jsonText = document.getElementById('json-input').value;
             const pathsText = document.getElementById('field-paths').value;
-
             if (!jsonText || !pathsText) {
-                alert('请输入 JSON 文本和字段路径！');
+                alert('请输入JSON和字段路径！');
                 return;
             }
-
             try {
                 const jsonData = JSON.parse(jsonText);
-                const paths = pathsText.split('\n').map(p => p.trim()).filter(p => p !== '');
-
+                const paths = pathsText.split('\n').map(p => p.trim()).filter(Boolean);
                 const resultsDiv = document.getElementById('json-results');
-                let html = `<h3>提取结果:</h3>`;
+                let html = '<h4>提取结果:</h4>';
                 paths.forEach(path => {
                     try {
                         const value = getNestedValue(jsonData, path);
                         const valueStr = value !== undefined ? JSON.stringify(value) : 'undefined';
-                        // Create an input for verification next to the result
-                        html += `<div class="json-item">
-                                    <div><strong>${path}:</strong> <span class="result-value">${valueStr}</span></div>
-                                    <input type="text" class="expected-input" placeholder="输入期望值..." data-field="${path}" data-actual="${valueStr}">
+                        html += `<div class="result-item" data-field="${path}">
+                                    <strong>${path}:</strong> ${valueStr}
+                                    <input type="text" class="verification-input" placeholder="输入期望值..." data-field="${path}" data-actual="${valueStr}">
                                  </div>`;
                     } catch (e) {
-                        html += `<div class="json-item error"><strong>${path}:</strong> Error parsing path - ${e.message}</div>`;
+                        html += `<div class="result-item error"><strong>${path}:</strong> 错误 - ${e.message}</div>`;
                     }
                 });
                 resultsDiv.innerHTML = html;
-                
-                // After rendering, attach event listeners to the new inputs
-                document.querySelectorAll('#json-results .expected-input').forEach(input => {
-                    input.addEventListener('input', function() {
-                        const field = this.getAttribute('data-field');
-                        const actual = this.getAttribute('data-actual');
-                        const expected = this.value;
-                        verifyJsonValue(field, actual, expected);
-                    });
-                });
-
+                attachVerificationListeners();
             } catch (e) {
-                alert('JSON 格式错误: ' + e.message);
+                alert('JSON格式错误: ' + e.message);
             }
         }
 
@@ -634,75 +611,59 @@ non.existent.field</textarea>
             return result;
         }
 
-        function verifyJsonValue(field, actual, expected) {
-            // Find the corresponding result item
-            const items = document.querySelectorAll('#json-results .json-item');
-            items.forEach(item => {
-                if (item.querySelector('.result-value') && item.querySelector('.result-value').textContent.includes(actual)) {
-                    item.classList.remove('correct', 'mismatch');
-                    if (actual == expected) {
-                        item.classList.add('correct');
-                    } else if(expected) { // Only mark as mismatch if an expected value is provided
-                        item.classList.add('mismatch');
-                    }
-                }
+        function attachVerificationListeners() {
+            document.querySelectorAll('#json-results .verification-input').forEach(input => {
+                input.removeEventListener('input', handleVerification); // 防止重复绑定
+                input.addEventListener('input', handleVerification);
             });
+        }
+
+        function handleVerification(e) {
+            const input = e.target;
+            const field = input.dataset.field;
+            const actual = input.dataset.actual;
+            const expected = input.value;
+            
+            const item = input.closest('.result-item');
+            item.classList.remove('match', 'mismatch');
+            
+            if (expected === '') return; // 如果清空了输入框，则移除所有状态
+            
+            if (actual == expected) {
+                item.classList.add('match');
+            } else {
+                item.classList.add('mismatch');
+            }
         }
 
         function clearJsonResults() {
             document.getElementById('json-results').innerHTML = '';
-            document.getElementById('verification-results').innerHTML = '<p>请先执行“提取字段”操作。</p>';
             document.getElementById('json-input').value = '';
             document.getElementById('field-paths').value = '';
         }
 
-
-        // --- 时间转换功能 ---
+        // Time Functions
         function convertTimestamp() {
-            const tsInput = document.getElementById('timestamp-input').value;
-            if (!tsInput) {
-                document.getElementById('timestamp-result').innerHTML = '请输入时间戳！';
+            const ts = parseFloat(document.getElementById('timestamp-input').value);
+            if (isNaN(ts)) {
+                document.getElementById('timestamp-result').innerHTML = '<div class="result-item error">请输入有效的时间戳！</div>';
                 return;
             }
-
-            let timestamp = parseFloat(tsInput);
-            if (isNaN(timestamp)) {
-                document.getElementById('timestamp-result').innerHTML = '请输入有效的时间戳数字！';
-                return;
-            }
-
-            let date;
-            if (timestamp > 1e12) { // 毫秒时间戳
-                date = new Date(timestamp);
-            } else { // 秒时间戳
-                date = new Date(timestamp * 1000);
-            }
-
-            const readableDate = date.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-            document.getElementById('timestamp-result').innerHTML = `<strong>转换结果:</strong> ${readableDate}`;
+            const d = ts > 1e12 ? new Date(ts) : new Date(ts * 1000);
+            document.getElementById('timestamp-result').innerHTML = `<div class="result-item"><strong>转换结果:</strong> ${d.toLocaleString('zh-CN')}</div>`;
         }
 
         function convertMinutes() {
-            const minutesInput = document.getElementById('minutes-input').value;
-            if (!minutesInput) {
-                 document.getElementById('time-format-result').innerHTML = '请输入分钟数！';
-                 return;
-            }
-
-            let totalMinutes = parseInt(minutesInput);
-            if (isNaN(totalMinutes) || totalMinutes < 0) {
-                document.getElementById('time-format-result').innerHTML = '请输入有效的正整数分钟！';
+            const mins = parseInt(document.getElementById('minutes-input').value);
+            if (isNaN(mins) || mins < 0) {
+                document.getElementById('time-format-result').innerHTML = '<div class="result-item error">请输入有效的正整数分钟！</div>';
                 return;
             }
-
-            const hours = Math.floor(totalMinutes / 60);
-            const remainingMinutes = totalMinutes % 60;
-            const seconds = 0;
-
-            const resultStr = `${totalMinutes} 分钟 = ${hours} 小时 ${remainingMinutes} 分 ${seconds} 秒`;
-            document.getElementById('time-format-result').innerHTML = `<strong>转换结果:</strong> ${resultStr}`;
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            const s = 0;
+            document.getElementById('time-format-result').innerHTML = `<div class="result-item"><strong>转换结果:</strong> ${mins} 分钟 = ${h} 小时 ${m} 分 ${s} 秒</div>`;
         }
-
     </script>
 </body>
 </html>
