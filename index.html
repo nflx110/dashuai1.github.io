@@ -1,955 +1,1336 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NF智能数据解析工具</title>
-  <style>
-    /* === 全局变量与基础样式 === */
-    :root {
-      --primary-color: #1976d2;
-      --success-color: #4caf50;
-      --warning-color: #ff9800;
-      --danger-color: #f44336;
-      --info-color: #2196f3;
-
-      /* --- 毛玻璃效果变量 --- */
-      --glass-bg: rgba(255, 255, 255, 0.85);
-      --glass-border: rgba(255, 255, 255, 0.2);
-      --glass-blur: blur(10px);
-
-      --text-dark: #1a1a1a;
-      --text-gray: #646974;
-      --text-light: #8a8e99;
-
-      --border-radius: 12px;
-      --card-padding: 20px;
-      --section-spacing: 24px;
-
-      --font-main: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-      --font-size-title: 18px;
-      --font-size-body: 14px;
-      --font-size-small: 12px;
-      --font-size-input: 14px;
-
-      --header-height: 60px;
-      /* --- 6. 调整高度 --- */
-      --header-collapsed-height: 30px;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: var(--font-main);
-      font-size: var(--font-size-body);
-      color: var(--text-dark);
-      height: 100vh;
-      overflow: hidden;
-      background-image: var(--bg-image-url);
-      background-size: cover;
-      background-position: center;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* === 6. 顶部栏优化：高度调整与折叠 === */
-    .header {
-      height: var(--header-height);
-      background: linear-gradient(135deg, var(--success-color), #2E7D32);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      /* --- 调整内边距 --- */
-      color: white;
-      transition: height 0.3s ease, box-shadow 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 10;
-    }
-
-    .header.collapsed {
-      height: var(--header-collapsed-height);
-      box-shadow: none;
-    }
-
-    .logo span {
-      font-size: var(--font-size-title);
-      font-weight: 500;
-    }
-
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .toggle-btn {
-      background: none;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.3s ease;
-      font-size: 12px;
-    }
-
-    .header.collapsed .toggle-btn {
-      transform: rotate(180deg);
-    }
-
-    /* --- 9. 新增JSON-handle按钮样式 --- */
-    .json-handle-btn {
-      background-color: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background-color 0.2s;
-    }
-
-    .json-handle-btn:hover {
-      background-color: rgba(255, 255, 255, 0.3);
-    }
-
-    select,
-    button {
-      font-family: var(--font-main);
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: none;
-      font-size: var(--font-size-body);
-    }
-
-    /* === 主内容区 === */
-    .main {
-      flex: 1;
-      overflow-y: auto;
-      padding: var(--section-spacing) calc(var(--section-spacing) / 2);
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* === 标签页导航 === */
-    .tabs {
-      display: flex;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-      margin-bottom: var(--section-spacing);
-      flex-shrink: 0;
-    }
-
-    .tab-button {
-      padding: 10px 20px;
-      background: none;
-      border: none;
-      color: rgba(255, 255, 255, 0.7);
-      cursor: pointer;
-      position: relative;
-      font-size: var(--font-size-body);
-      transition: color 0.2s;
-    }
-
-    .tab-button.active {
-      color: white;
-    }
-
-    .tab-button.active::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: white;
-    }
-
-    /* === 8. 毛玻璃效果应用于所有卡片 === */
-    .card {
-      background: var(--glass-bg);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--border-radius);
-      padding: var(--card-padding);
-      margin-bottom: var(--section-spacing);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      max-width: 520px;
-      width: 100%;
-      min-width: 300px;
-    }
-
-    .card h3 {
-      font-size: var(--font-size-title);
-      font-weight: 500;
-      margin-bottom: 16px;
-      color: var(--text-dark);
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: var(--font-size-body);
-      color: var(--text-gray);
-    }
-
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #dcdcdc;
-      border-radius: 6px;
-      font-size: var(--font-size-input);
-      background-color: rgba(255, 255, 255, 0.7);
-      transition: border-color 0.2s;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: var(--primary-color);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 10px;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: var(--font-size-body);
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .btn:hover {
-      background-color: #0d47a1;
-    }
-
-    .btn-clear {
-      background-color: #f5f5f5;
-      color: var(--text-gray);
-    }
-
-    .btn-clear:hover {
-      background-color: #e0e0e0;
-    }
-
-    .result-container {
-      margin-top: 16px;
-      padding: 12px;
-      background-color: rgba(0, 0, 0, 0.03);
-      border-radius: 6px;
-      word-break: break-all;
-      font-size: var(--font-size-input);
-      line-height: 1.5;
-    }
-
-    /* === 特定样式 === */
-    .url-param-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .param-item {
-      background-color: #e3f2fd;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: var(--font-size-small);
-      color: var(--info-color);
-    }
-
-    .json-field-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .json-field-row input {
-      flex: 1;
-    }
-
-    .json-field-row button {
-      flex-shrink: 0;
-      padding: 6px 10px;
-      font-size: var(--font-size-small);
-    }
-
-    .time-conversion-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    .verification-center {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px dashed #dcdcdc;
-    }
-
-    .verification-center .form-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .verification-center .form-group label {
-      flex-shrink: 0;
-      margin-bottom: 0;
-      width: 120px;
-    }
-
-    .verification-center .form-group input {
-      flex: 1;
-    }
-
-    /* === 8. 毛玻璃效果应用于模态框 === */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .modal-content {
-      background: var(--glass-bg);
-      backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--border-radius);
-      margin: 15% auto;
-      padding: 20px;
-      width: 80%;
-      max-width: 500px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .close:hover,
-    .close:focus {
-      color: black;
-    }
-
-    @media (max-width: 768px) {
-      .header {
-        padding: 0 16px;
-      }
-
-      .main {
-        padding: 16px;
-      }
-
-      .card {
-        padding: 16px;
-        margin-bottom: 16px;
-      }
-
-      .time-conversion-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-
-<body>
-
-  <!-- 6. 顶部栏 (高度调整、折叠) & 9. JSON-handle入口 -->
-  <header class="header" id="header">
-    <div class="logo">
-      <!-- 10. 标题更新 -->
-      <span>NF智能数据解析工具</span>
-    </div>
-    <div class="controls">
-      <select onchange="changeTheme(this.value)">
-        <option value="blue">蓝色 (默认)</option>
-        <option value="green">绿色</option>
-        <option value="purple">紫色</option>
-        <option value="red">红色</option>
-        <option value="orange">橙色</option>
-        <option value="cyan">青色</option>
-        <option value="indigo">靛蓝</option>
-        <option value="pink">粉色</option>
-        <option value="yellow">黄色</option>
-        <option value="gray">灰色</option>
-        <option value="dark">深色模式</option>
-      </select>
-      <select id="wallpaperSelect" onchange="changeWallpaper(this.value)">
-        <option value="">默认背景</option>
-        <option value="https://images.unsplash.com/photo-1505506874110-6a7a69069a08?q=80&w=1920">森林晨雾</option>
-        <option value="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1920">山川湖泊</option>
-        <option value="https://images.unsplash.com/photo-1506260408121-e353d10b87c7?q=80&w=1920">自然风光</option>
-        <option value="custom">自定义URL...</option> <!-- 7. 保留此选项 -->
-      </select>
-      <!-- 9. 新增JSON-handle按钮 -->
-      <a href="https://jsonhandle.com" target="_blank" class="json-handle-btn">JSON-handle</a>
-      <!-- 6. 折叠按钮 -->
-      <button class="toggle-btn" id="toggleBtn">▼</button>
-    </div>
-  </header>
-
-  <main class="main">
-
-    <div class="tabs">
-      <button class="tab-button active" data-tab="url">URL 解析</button>
-      <button class="tab-button" data-tab="json">JSON 解析</button>
-      <button class="tab-button" data-tab="time">时间转换</button>
-    </div>
-
-    <div class="card" id="urlCard">
-      <h3>解析与提取</h3>
-      <div class="form-group">
-        <label>输入URL</label>
-        <input type="text" id="urlInput" placeholder="https://example.com/?id=123" />
-      </div>
-      <div class="form-group">
-        <label>选择参数</label>
-        <select id="urlParamSelect">
-          <option value="">请选择参数...</option>
-          <option value="all">全部参数</option>
-          <!-- 1. 移除了默认的utm等选项 -->
-        </select>
-      </div>
-      <div class="form-group">
-        <button class="btn" onclick="parseUrl()">解析</button>
-        <button class="btn btn-clear" onclick="clearUrl()">清空全部</button>
-        <button class="btn btn-clear" onclick="showCompareModal()">对比验证参考URL</button>
-        <!-- 2. 添加管理自定义参数按钮 -->
-        <button class="btn btn-clear" onclick="showCustomParamModal()">管理自定义参数...</button>
-      </div>
-      <div id="urlResult" class="result-container"></div>
-      <div class="verification-center" id="urlVerificationCenter">
-        <h4>验证中心</h4>
-        <p>在上方提取结果中，每个字段旁会出现输入框，输入期望值即可实时比对。请先在左侧执行“提取”操作。</p>
-        <div id="urlVerificationInputs"></div>
-      </div>
-    </div>
-
-    <div class="card" id="jsonCard" style="display: none;">
-      <h3>解析与提取</h3>
-      <div class="form-group">
-        <label>输入JSON</label>
-        <textarea id="jsonInput" placeholder='{ "user": { "name": "张三", "id": 123 }, "settings": { "theme": "dark" } }'
-          rows="6"></textarea>
-      </div>
-      <div class="form-group">
-        <label>字段路径或字段名 (每行一个)</label>
-        <div id="jsonFieldContainer"></div>
-        <button class="btn" onclick="addJsonField()">添加自定义字段路径</button>
-        <button class="btn" onclick="addCommonPath()">添加我的常用路径</button>
-      </div>
-      <div class="form-group">
-        <button class="btn" onclick="extractJson()">提取</button>
-        <!-- 5. 新增接续解析按钮 -->
-        <button class="btn" onclick="extractJson()">接续解析</button>
-        <button class="btn btn-clear" onclick="clearJson()">清空全部</button>
-      </div>
-      <div id="jsonResult" class="result-container"></div>
-      <div class="verification-center" id="jsonVerificationCenter">
-        <h4>验证中心</h4>
-        <p>在上方提取结果中，每个字段旁会出现输入框，输入期望值即可实时比对。请先在左侧执行“提取”操作。</p>
-        <div id="jsonVerificationInputs"></div>
-      </div>
-    </div>
-
-    <div class="card" id="timeCard" style="display: none;">
-      <h3>时间单位转换</h3>
-      <div class="time-conversion-grid">
-        <div>
-          <div class="form-group">
-            <label>选择转换类型</label>
-            <select id="unitType">
-              <option value="minToHMS">分钟转时分秒</option>
-              <option value="minToMS">分钟转分秒</option>
-              <option value="hourToMS">小时转分秒</option>
-              <option value="secToMS">秒数转分秒</option>
-              <option value="msToMS">毫秒转分秒</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>输出格式</label>
-            <select id="outputFormat">
-              <option value="HMS">时:分:秒</option>
-              <option value="MS">分:秒</option>
-              <option value="totalSec">总秒数</option>
-              <option value="totalMs">总毫秒数</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <div class="form-group">
-            <label>输入数值</label>
-            <input type="number" id="inputValue" placeholder="请输入数字" />
-          </div>
-          <div class="form-group">
-            <button class="btn" onclick="convertTimeUnit()">转换</button>
-          </div>
-        </div>
-      </div>
-      <div id="unitResult" class="result-container"></div>
-
-      <h3 style="margin-top: 20px;">时间戳转换</h3>
-      <div class="form-group">
-        <label>输入时间戳 (秒或毫秒)</label>
-        <input type="text" id="timestampInput" placeholder="例如: 1700000000 或 1700000000000" />
-      </div>
-      <div class="form-group">
-        <button class="btn" onclick="convertTimestamp()">转换</button>
-      </div>
-      <div id="timestampResult" class="result-container"></div>
-    </div>
-
-  </main>
-
-  <!-- 保留原有Modal -->
-  <div id="compareModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeCompareModal()">&times;</span>
-      <h3>对比验证</h3>
-      <div class="form-group">
-        <label>参考URL</label>
-        <input type="text" id="referenceUrl" placeholder="输入参考URL" />
-      </div>
-      <button class="btn" onclick="startCompare()">开始比对</button>
-    </div>
-  </div>
-
-  <div id="customParamModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeCustomParamModal()">&times;</span>
-      <h3>管理自定义URL参数</h3>
-      <div class="form-group">
-        <input type="text" id="newParamName" placeholder="输入参数名称" />
-        <button class="btn" onclick="addCustomParam()">添加</button>
-      </div>
-      <ul id="customParamList"></ul>
-      <div style="margin-top: 15px;">
-        <button class="btn" onclick="saveAndCloseParams()">保存并关闭</button>
-      </div>
-    </div>
-  </div>
-
-  <footer style="text-align: center; padding: 10px; color: white; background-color: rgba(0,0,0,0.1);">
-    <!-- 10. 标题更新 -->
-    NF智能数据解析工具 &copy; 2026
-  </footer>
-
-  <script>
-    let customUrlParams = []; // 1. 初始化为空数组
-
-    function changeTheme(theme) {
-      const colors = {
-        blue: '#2196F3',
-        green: '#4CAF50',
-        purple: '#9C27B0',
-        red: '#F44336',
-        orange: '#FF9800',
-        cyan: '#00BCD4',
-        indigo: '#3F51B5',
-        pink: '#E91E63',
-        yellow: '#FFEB3B',
-        gray: '#9E9E9E',
-        dark: '#333'
-      };
-      const color = colors[theme] || colors.blue;
-      document.querySelector('.header').style.background = `linear-gradient(135deg, ${color}, ${adjustColor(color, -20)})`;
-    }
-
-    function adjustColor(col, amt) {
-      return '#' + col.replace(/^#/, '').replace(/../g, color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amt)).toString(16)).substr(-2));
-    }
-
-    // 7. 修复自定义壁纸URL
-    function changeWallpaper(url) {
-      if (url === 'custom') {
-        const customUrl = prompt('请输入图片URL:');
-        if (customUrl) {
-          document.body.style.backgroundImage = `url('${customUrl}')`;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能数据解析工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            /* 默认主题 (蓝) */
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --success-color: #4ade80;
+            --warning-color: #facc15;
+            --danger-color: #f87171;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
         }
-      } else if (url) {
-        document.body.style.backgroundImage = `url('${url}')`;
-      } else {
-        document.body.style.backgroundImage = 'var(--bg-image-url)';
-      }
-    }
 
-    function parseUrl() {
-      const urlStr = document.getElementById('urlInput').value;
-      const paramSel = document.getElementById('urlParamSelect').value;
-      const resultDiv = document.getElementById('urlResult');
-      const verificationDiv = document.getElementById('urlVerificationInputs');
-      try {
-        const url = new URL(urlStr);
-        const params = new URLSearchParams(url.search);
-        let results = {};
-        if (paramSel === 'all') {
-          for (const [key, value] of params.entries()) {
-            results[key] = value;
-          }
-        } else if (paramSel) {
-          results[paramSel] = params.get(paramSel) || 'Not Found';
-        } else {
-          resultDiv.innerHTML = '<p style="color: red;">请选择一个参数或“全部参数”。</p>';
-          verificationDiv.innerHTML = '';
-          return;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        let html = '<strong>解析结果:</strong><br>';
-        for (const [key, value] of Object.entries(results)) {
-          html += `${key}: ${value}<br>`;
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
-        resultDiv.innerHTML = html;
 
-        let vHtml = '';
-        for (const [key, value] of Object.entries(results)) {
-          vHtml += `
-                <div class="form-group">
-                    <label>${key}</label>
-                    <input type="text" data-key="${key}" data-expected="${value}" oninput="validateUrlResult(this)" placeholder="期望值" />
-                </div>
-                `;
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
         }
-        document.getElementById('urlVerificationInputs').innerHTML = vHtml;
 
-      } catch (e) {
-        resultDiv.innerHTML = `<p style="color: red;">URL格式错误: ${e.message}</p>`;
-        verificationDiv.innerHTML = '';
-      }
-    }
-
-    function validateUrlResult(input) {
-      const key = input.dataset.key;
-      const expected = input.dataset.expected;
-      const actualText = document.querySelector(`#urlResult`).innerHTML;
-      const match = actualText.match(new RegExp(`${key}: ([^<]+)<br>`));
-      const actual = match ? match[1].trim() : null;
-      const isValid = actual === input.value && actual === expected;
-      input.style.backgroundColor = isValid ? '#d4edda' : '#f8d7da';
-    }
-
-    function clearUrl() {
-      document.getElementById('urlInput').value = '';
-      document.getElementById('urlResult').innerHTML = '';
-      document.getElementById('urlVerificationInputs').innerHTML = '';
-    }
-
-    function showCompareModal() {
-      document.getElementById('compareModal').style.display = 'block';
-    }
-
-    function closeCompareModal() {
-      document.getElementById('compareModal').style.display = 'none';
-    }
-
-    function startCompare() {
-      alert('开始比对功能待实现。');
-      closeCompareModal();
-    }
-
-    let jsonFields = [];
-
-    function addJsonField() {
-      const container = document.getElementById('jsonFieldContainer');
-      const div = document.createElement('div');
-      div.className = 'json-field-row';
-      div.innerHTML = `
-            <input type="text" placeholder="例如: user.name">
-            <button type="button" class="btn" onclick="removeJsonField(this)">删除</button>
-        `;
-      container.appendChild(div);
-    }
-
-    function removeJsonField(button) {
-      button.parentElement.remove();
-    }
-
-    function addCommonPath() {
-      const paths = ['user.name', 'name', 'user.id', 'settings.theme'];
-      const container = document.getElementById('jsonFieldContainer');
-      paths.forEach(path => {
-        const existingInputs = container.querySelectorAll('input[type="text"]');
-        const exists = Array.from(existingInputs).some(inp => inp.value.trim() === path);
-        if (!exists) {
-          const div = document.createElement('div');
-          div.className = 'json-field-row';
-          div.innerHTML = `
-                    <input type="text" value="${path}">
-                    <button type="button" class="btn" onclick="removeJsonField(this)">删除</button>
-                `;
-          container.appendChild(div);
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-      });
-    }
 
-    // 3, 4. 修复并增强JSON解析逻辑
-    function extractJson() {
-      const jsonStr = document.getElementById('jsonInput').value.trim();
-      if (!jsonStr) {
-        document.getElementById('jsonResult').innerHTML = '<p style="color: red;">请输入JSON数据。</p>';
-        document.getElementById('jsonVerificationInputs').innerHTML = '';
-        return;
-      }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
-      try {
-        const obj = JSON.parse(jsonStr);
-        const fieldInputs = document.querySelectorAll('#jsonFieldContainer input[type="text"]');
-        const nonEmptyPaths = Array.from(fieldInputs).map(inp => inp.value.trim()).filter(path => path);
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
 
-        let results = {};
-        if (nonEmptyPaths.length === 0) {
-          // 3. 如果没有字段路径，格式化并显示整个JSON
-          results['formatted_json'] = JSON.stringify(obj, null, 2);
-        } else {
-          // 否则按路径提取
-          nonEmptyPaths.forEach(path => {
-            const keys = path.split('.');
-            let val = obj;
-            for (const k of keys) {
-              val = val?.[k];
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .control-group label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 0.25rem;
+        }
+
+        .theme-selector select,
+        .wallpaper-input {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-selector select option,
+        .wallpaper-input option {
+            background-color: var(--surface-color);
+            color: var(--text-primary);
+        }
+
+        .wallpaper-input {
+            width: 250px;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: var(--surface-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow-md);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .tab-button i {
+            font-size: 1.1rem;
+        }
+
+        .tab-button:hover:not(.active) {
+            background-color: #f1f5f9;
+            color: var(--text-primary);
+        }
+
+        .tab-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(500px, 100%), 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+            position: relative; /* For absolute positioning of clear button */
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: #f9fafb;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .clear-btn-input {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .clear-btn-input:hover {
+            background-color: #e2e8f0;
+            color: var(--text-primary);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background-color: #f1f5f9;
+            color: var(--text-primary);
+        }
+
+        button.secondary:hover {
+            background-color: #e2e8f0;
+        }
+
+        .custom-fields-container {
+            margin-top: 1rem;
+        }
+
+        .custom-field-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background-color: #f1f5f9;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.25rem;
+        }
+
+        .custom-field-item span {
+            font-family: monospace;
+            word-break: break-all;
+            cursor: pointer;
+        }
+
+        .custom-field-item button {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .result-container {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--border-color);
+            min-height: 100px;
+        }
+
+        .result-item {
+            padding: 0.75rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+            font-family: monospace;
+            word-break: break-all;
+            background-color: white;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .result-item.match {
+            border-left-color: var(--success-color);
+            background-color: #f0fdf4;
+        }
+
+        .result-item.mismatch {
+            border-left-color: var(--warning-color);
+            background-color: #fefce8;
+        }
+
+        .result-item.error {
+            border-left-color: var(--danger-color);
+            background-color: #fef2f2;
+        }
+
+        .verification-input {
+            margin-top: 0.5rem;
+            width: calc(100% - 2rem);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* Multi-Select Dropdown Styles */
+        .multi-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .multi-select-trigger {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: #f9fafb;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .multi-select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
+
+        .multi-select-option {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        .multi-select-option:hover {
+            background-color: #f1f5f9;
+        }
+
+        .multi-select-option.selected {
+            background-color: #dbeafe;
+            color: var(--primary-color);
+        }
+
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .selected-tag {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .selected-tag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--surface-color);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-body ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .modal-body li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
             }
-            results[path] = val !== undefined ? val : 'Not Found';
-          });
+            
+            .controls {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group {
+                align-items: stretch;
+            }
+
+            .wallpaper-input {
+                width: 100%;
+            }
+            
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
         }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1><i class="fas fa-wrench"></i> 智能数据解析工具</h1>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="theme-select">主题颜色</label>
+                    <select id="theme-select">
+                        <option value="blue">蓝色 (默认)</option>
+                        <option value="green">绿色</option>
+                        <option value="purple">紫色</option>
+                        <option value="red">红色</option>
+                        <option value="orange">橙色</option>
+                        <option value="teal">青色</option>
+                        <option value="indigo">靛蓝</option>
+                        <option value="pink">粉色</option>
+                        <option value="yellow">黄色</option>
+                        <option value="gray">灰色</option>
+                        <option value="dark">深色模式</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="wallpaper-input">自定义壁纸</label>
+                    <select id="wallpaper-input" onchange="setCustomBackground(this.value)">
+                        <option value="">默认背景</option>
+                        <option value="https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1920&auto=format&fit=crop">森林晨雾</option>
+                        <option value="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1920&auto=format&fit=crop">山川湖泊</option>
+                        <option value="https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1920&auto=format&fit=crop">自然风光</option>
+                        <option value="custom">自定义URL...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
 
-        let html = '<strong>提取结果:</strong><br><pre>' + (results['formatted_json'] || Object.entries(results).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join('<br>')) + '</pre>';
-        document.getElementById('jsonResult').innerHTML = html;
+    <div class="app-container">
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="url-tab">
+                <i class="fas fa-link"></i> URL 解析
+            </button>
+            <button class="tab-button" data-tab="json-tab">
+                <i class="fas fa-file-code"></i> JSON 解析
+            </button>
+            <button class="tab-button" data-tab="time-tab">
+                <i class="fas fa-clock"></i> 时间转换
+            </button>
+        </nav>
 
-        // Populate verification inputs only if not formatted JSON
-        let vHtml = '';
-        if (!results['formatted_json']) {
-          for (const [key, value] of Object.entries(results)) {
-            vHtml += `
-                    <div class="form-group">
-                        <label>${key}</label>
-                        <input type="text" data-key="${key}" data-expected="${typeof value === 'object' ? JSON.stringify(value) : value}" oninput="validateJsonResult(this)" placeholder="期望值" value="${typeof value === 'object' ? JSON.stringify(value) : value}"/>
+        <main>
+            <!-- URL Tab -->
+            <section id="url-tab" class="tab-content active">
+                <div class="card-grid">
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-cogs"></i> 解析与提取</h3>
+                        <div class="form-group">
+                            <label for="url-input"><i class="fas fa-globe-asia"></i> 输入URL</label>
+                            <div class="form-row">
+                                <textarea id="url-input" placeholder="https://example.com/path?param1=value1&param2=value2"></textarea>
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('url-input')"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="param-select"><i class="fas fa-list"></i> 选择参数</label>
+                            <div class="multi-select-wrapper">
+                                <div class="multi-select-trigger" onclick="toggleMultiSelectDropdown()">
+                                    <span id="multi-select-trigger-text">请选择参数...</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="multi-select-dropdown" id="multi-select-dropdown">
+                                    <div class="multi-select-option" data-value="">全部参数</div>
+                                    <div class="multi-select-option" data-value="utm_source">utm_source</div>
+                                    <div class="multi-select-option" data-value="utm_medium">utm_medium</div>
+                                    <div class="multi-select-option" data-value="utm_campaign">utm_campaign</div>
+                                    <div class="multi-select-option" data-value="id">id</div>
+                                    <div class="multi-select-option" data-value="ref">ref</div>
+                                    <!-- Custom params will be injected here -->
+                                    <div class="multi-select-option" data-value="custom_params_manage">管理自定义参数...</div>
+                                </div>
+                            </div>
+                            <div class="selected-tags" id="selected-tags-container"></div>
+                        </div>
+                        <div class="button-group">
+                            <button onclick="parseUrl()"><i class="fas fa-play"></i> 解析</button>
+                            <button class="secondary" onclick="clearAllUrl()"><i class="fas fa-broom"></i> 清空全部</button>
+                        </div>
+                        <div id="parsed-results" class="result-container"></div>
                     </div>
-                    `;
-          }
-        }
-        document.getElementById('jsonVerificationInputs').innerHTML = vHtml;
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-exchange-alt"></i> 对比验证</h3>
+                        <div class="form-group">
+                            <label for="correct-url-input"><i class="fas fa-check-circle"></i> 参考URL</label>
+                            <div class="form-row">
+                                <textarea id="correct-url-input" placeholder="粘贴正确的URL进行比对..."></textarea>
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('correct-url-input')"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <button onclick="compareUrls()"><i class="fas fa-search"></i> 开始比对</button>
+                        <div id="comparison-results" class="result-container"></div>
+                    </div>
+                </div>
+            </section>
 
-      } catch (e) {
-        document.getElementById('jsonResult').innerHTML = `<p style="color: red;">JSON格式错误或自动修复失败: ${e.message}</p>`;
-        document.getElementById('jsonVerificationInputs').innerHTML = '';
-      }
-    }
+            <!-- JSON Tab -->
+            <section id="json-tab" class="tab-content">
+                <div class="card-grid">
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-cogs"></i> 解析与提取</h3>
+                        <div class="form-group">
+                            <label for="json-input"><i class="fas fa-code"></i> 输入JSON</label>
+                            <div class="form-row">
+                                <textarea id="json-input" placeholder='{ "user": { "name": "张三" } }'></textarea>
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('json-input')"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="field-paths"><i class="fas fa-key"></i> 字段路径或字段名 (每行一个)</label>
+                            <div class="form-row">
+                                <textarea id="field-paths" placeholder="user.name&#10;name&#10;user.id">user.name
+name
+user.id
+settings.theme</textarea>
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('field-paths')"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-plus-circle"></i> 添加自定义字段路径</label>
+                            <div class="form-row">
+                                <input type="text" id="new-field-path" placeholder="例如: profile.avatar">
+                                <button onclick="addCustomFieldPath()" style="padding: 0.75rem;"><i class="fas fa-plus"></i> 添加</button>
+                            </div>
+                        </div>
 
-    function validateJsonResult(input) {
-      const key = input.dataset.key;
-      const expected = input.dataset.expected;
-      const resultPre = document.querySelector(`#jsonResult pre`);
-      if (!resultPre) return;
-      const resultText = resultPre.textContent;
-      const lines = resultText.split('\n');
-      let actual = null;
-      for (let line of lines) {
-        if (line.startsWith(`${key}: `)) {
-          actual = line.substring(key.length + 2).trim();
-          break;
-        }
-      }
+                        <div class="custom-fields-container">
+                            <h4>我的常用路径:</h4>
+                            <div id="saved-custom-fields-json"></div>
+                        </div>
 
-      let isValid = false;
-      try {
-        const parsedActual = JSON.parse(actual);
-        const parsedExpected = JSON.parse(expected);
-        const parsedInput = JSON.parse(input.value);
-        isValid = JSON.stringify(parsedActual) === JSON.stringify(parsedExpected) && JSON.stringify(parsedActual) === JSON.stringify(parsedInput);
-      } catch {
-        isValid = String(actual) === input.value && String(actual) === String(expected);
-      }
+                        <div class="button-group">
+                            <button onclick="extractJsonFields()"><i class="fas fa-play"></i> 提取</button>
+                            <button class="secondary" onclick="clearAllJson()"><i class="fas fa-broom"></i> 清空全部</button>
+                        </div>
+                        <div id="json-results" class="result-container"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-tasks"></i> 验证中心</h3>
+                        <p>在上方提取结果中，每个字段旁会出现输入框，输入期望值即可实时比对。</p>
+                        <div id="verification-results" class="result-container">
+                            <p>请先在左侧执行“提取”操作。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-      input.style.backgroundColor = isValid ? '#d4edda' : '#f8d7da';
-    }
+            <!-- Time Tab -->
+            <section id="time-tab" class="tab-content">
+                <div class="card-grid">
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-calendar-day"></i> 时间单位转换</h3>
+                        <div class="form-group">
+                            <label for="conversion-type"><i class="fas fa-sliders-h"></i> 选择转换类型</label>
+                            <select id="conversion-type" class="conversion-select">
+                                <option value="minutes-to-hours-minutes">分钟转时分秒</option>
+                                <option value="minutes-to-minutes-seconds">分钟转分秒</option>
+                                <option value="hours-to-minutes-seconds">小时转分秒</option>
+                                <option value="seconds-to-minutes-seconds">秒数转分秒</option>
+                                <option value="milliseconds-to-minutes-seconds">毫秒转分秒</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="output-format"><i class="fas fa-ruler-combined"></i> 输出格式</label>
+                            <select id="output-format" class="conversion-select">
+                                <option value="hms">时:分:秒</option>
+                                <option value="ms">分:秒</option>
+                                <option value="total_seconds">总秒数</option>
+                                <option value="total_milliseconds">总毫秒数</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-value"><i class="fas fa-stopwatch"></i> 输入数值</label>
+                            <div class="form-row">
+                                <input type="number" id="input-value" placeholder="请输入数字" min="0" step="1">
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('input-value')"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <button onclick="convertTime()"><i class="fas fa-sync-alt"></i> 转换</button>
+                        <div id="time-conversion-result" class="result-container"></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="card-title"><i class="fas fa-hourglass-end"></i> 时间戳转换</h3>
+                        <div class="form-group">
+                            <label for="timestamp-input"><i class="fas fa-hourglass-half"></i> 输入时间戳 (秒或毫秒)</label>
+                            <div class="form-row">
+                                <input type="number" id="timestamp-input" placeholder="例如: 1700000000 或 1700000000000">
+                                <button class="clear-btn-input" title="清空" onclick="clearInputField('timestamp-input')"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <button onclick="convertTimestamp()"><i class="fas fa-sync-alt"></i> 转换</button>
+                        <div id="timestamp-result" class="result-container"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
 
-    function clearJson() {
-      document.getElementById('jsonInput').value = '';
-      document.getElementById('jsonResult').innerHTML = '';
-      document.getElementById('jsonVerificationInputs').innerHTML = '';
-      document.getElementById('jsonFieldContainer').innerHTML = '';
-    }
+    <!-- Modal for Custom URL Params -->
+    <div id="custom-params-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>管理自定义URL参数</h3>
+                <span class="close-modal" onclick="closeModal('custom-params-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <input type="text" id="new-param-name" placeholder="参数名，如: custom_id">
+                    <button onclick="addCustomParam()"><i class="fas fa-plus"></i> 添加</button>
+                </div>
+                <ul id="saved-custom-params-list"></ul>
+            </div>
+            <div class="modal-actions">
+                <button class="secondary" onclick="closeModal('custom-params-modal')">取消</button>
+                <button onclick="saveAndCloseParamsModal()">保存并关闭</button>
+            </div>
+        </div>
+    </div>
 
-    function convertTimeUnit() {
-      const type = document.getElementById('unitType').value;
-      const format = document.getElementById('outputFormat').value;
-      const value = parseFloat(document.getElementById('inputValue').value);
-      const resultDiv = document.getElementById('unitResult');
+    <footer>
+        <p>智能数据解析工具 &copy; 2026</p>
+    </footer>
 
-      if (isNaN(value)) {
-        resultDiv.innerHTML = '<p style="color: red;">请输入有效数字。</p>';
-        return;
-      }
+    <script>
+        // --- State Management ---
+        let customJsonFields = JSON.parse(localStorage.getItem('customJsonFields')) || [];
+        let customUrlParams = JSON.parse(localStorage.getItem('customUrlParams')) || [];
+        let selectedUrlParams = []; // For multi-select state
 
-      let result = '';
-      let totalSeconds = 0;
+        // --- Tab Switching ---
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-tab');
 
-      switch (type) {
-        case 'minToHMS':
-          totalSeconds = value * 60;
-          break;
-        case 'minToMS':
-          totalSeconds = value * 60;
-          break;
-        case 'hourToMS':
-          totalSeconds = value * 60 * 60;
-          break;
-        case 'secToMS':
-          totalSeconds = value;
-          break;
-        case 'msToMS':
-          totalSeconds = value / 1000;
-          break;
-      }
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
 
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = Math.floor(totalSeconds % 60);
-      const milliseconds = Math.round((totalSeconds % 1) * 1000);
+                document.getElementById(targetTab).classList.add('active');
+                button.classList.add('active');
+            });
+        });
 
-      if (format === 'HMS') {
-        result = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      } else if (format === 'MS') {
-        result = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-      } else if (format === 'totalSec') {
-        result = totalSeconds.toFixed(3);
-      } else if (format === 'totalMs') {
-        result = (totalSeconds * 1000).toFixed(0);
-      }
-
-      resultDiv.innerHTML = `<strong>转换结果:</strong><br>${result}`;
-    }
-
-    function convertTimestamp() {
-      const tsStr = document.getElementById('timestampInput').value.trim();
-      const resultDiv = document.getElementById('timestampResult');
-
-      if (!tsStr) {
-        resultDiv.innerHTML = '<p style="color: red;">请输入时间戳。</p>';
-        return;
-      }
-
-      let timestamp = parseFloat(tsStr);
-      if (isNaN(timestamp)) {
-        resultDiv.innerHTML = '<p style="color: red;">时间戳格式错误。</p>';
-        return;
-      }
-
-      if (tsStr.length > 10) {
-        timestamp = timestamp / 1000;
-      }
-
-      const date = new Date(timestamp * 1000);
-      resultDiv.innerHTML = `<strong>转换结果:</strong><br>${date.toLocaleString()}`;
-    }
-
-    // 2. 修复管理自定义参数模态框
-    function showCustomParamModal() {
-      document.getElementById('customParamModal').style.display = 'block';
-      renderCustomParamList();
-    }
-
-    function closeCustomParamModal() {
-      document.getElementById('customParamModal').style.display = 'none';
-    }
-
-    function renderCustomParamList() {
-      const list = document.getElementById('customParamList');
-      list.innerHTML = '';
-      customUrlParams.forEach(p => {
-        const li = document.createElement('li');
-        li.textContent = p;
-        // 2. 修复：点击列表项时，将其添加到主下拉菜单并选中
-        li.onclick = () => {
-          const sel = document.getElementById('urlParamSelect');
-          // 检查是否已存在该选项，避免重复
-          const existingOption = Array.from(sel.options).find(opt => opt.value === p);
-          if (!existingOption) {
-            const opt = document.createElement('option');
-            opt.value = p;
-            opt.textContent = p;
-            sel.appendChild(opt);
-          }
-          sel.value = p; // 选中该项
-          closeCustomParamModal(); // 关闭模态框
+        // --- Theme & Background ---
+        const themes = {
+            blue: { '--primary-color': '#4361ee', '--secondary-color': '#3f37c9', '--background-color': '#f8fafc', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#e2e8f0' },
+            green: { '--primary-color': '#22c55e', '--secondary-color': '#16a34a', '--background-color': '#f0fdf4', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#bbf7d0' },
+            purple: { '--primary-color': '#a855f7', '--secondary-color': '#9333ea', '--background-color': '#faf5ff', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#e9d5ff' },
+            red: { '--primary-color': '#ef4444', '--secondary-color': '#dc2626', '--background-color': '#fef2f2', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fecaca' },
+            orange: { '--primary-color': '#f97316', '--secondary-color': '#ea580c', '--background-color': '#fff7ed', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fed7aa' },
+            teal: { '--primary-color': '#14b8a6', '--secondary-color': '#0d9488', '--background-color': '#f0fdfa', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#a7f3d0' },
+            indigo: { '--primary-color': '#6366f1', '--secondary-color': '#4f46e5', '--background-color': '#eef2ff', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#c7d2fe' },
+            pink: { '--primary-color': '#ec4899', '--secondary-color': '#db2777', '--background-color': '#fdf2f8', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fbcfe8' },
+            yellow: { '--primary-color': '#eab308', '--secondary-color': '#ca8a04', '--background-color': '#fefce8', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fde047' },
+            gray: { '--primary-color': '#6b7280', '--secondary-color': '#4b5563', '--background-color': '#f9fafb', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#e5e7eb' },
+            dark: { '--primary-color': '#809fff', '--secondary-color': '#6d61d6', '--background-color': '#0f172a', '--surface-color': '#1e293b', '--text-primary': '#f1f5f9', '--text-secondary': '#94a3b8', '--border-color': '#334155' }
         };
-        list.appendChild(li);
-      });
-    }
 
-    function addCustomParam() {
-      const input = document.getElementById('newParamName');
-      const name = input.value.trim();
-      if (name && !customUrlParams.includes(name)) {
-        customUrlParams.push(name);
-        input.value = '';
-        renderCustomParamList(); // 重新渲染列表
-      }
-    }
+        const root = document.documentElement;
+        const themeSelect = document.getElementById('theme-select');
+        const wallpaperSelect = document.getElementById('wallpaper-input');
 
-    function saveAndCloseParams() {
-      closeCustomParamModal();
-    }
+        function applyTheme(themeName) {
+            const themeVars = themes[themeName] || themes.blue;
+            Object.entries(themeVars).forEach(([prop, val]) => {
+                root.style.setProperty(prop, val);
+            });
+            localStorage.setItem('selectedTheme', themeName);
+        }
 
-    // 6. 顶部栏折叠功能
-    const header = document.getElementById('header');
-    const toggleBtn = document.getElementById('toggleBtn');
+        function setCustomBackground(imageUrl) {
+            if (imageUrl === 'custom') {
+                imageUrl = prompt("请输入图片URL:");
+                if (imageUrl) {
+                    document.body.style.backgroundImage = `url('${imageUrl}')`;
+                    localStorage.setItem('customWallpaper', imageUrl);
+                    wallpaperSelect.value = imageUrl;
+                } else {
+                    wallpaperSelect.value = '';
+                }
+            } else if(imageUrl){
+                 document.body.style.backgroundImage = `url('${imageUrl}')`;
+                 localStorage.setItem('customWallpaper', imageUrl);
+            } else {
+                 document.body.style.backgroundImage = '';
+                 localStorage.removeItem('customWallpaper');
+            }
+        }
 
-    toggleBtn.addEventListener('click', () => {
-      header.classList.toggle('collapsed');
-    });
+        themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
+        window.onload = function() {
+            const savedTheme = localStorage.getItem('selectedTheme') || 'blue';
+            const savedWallpaper = localStorage.getItem('customWallpaper') || '';
+            applyTheme(savedTheme);
+            themeSelect.value = savedTheme;
+            if(savedWallpaper) {
+                document.body.style.backgroundImage = `url('${savedWallpaper}')`;
+                wallpaperSelect.value = savedWallpaper;
+            }
+            // Initialize custom params in dropdown
+            updateUrlParamDropdownOptions();
+            // Initialize saved fields
+            renderSavedJsonFields();
+        };
 
-    // 标签页切换功能
-    document.querySelectorAll('.tab-button').forEach(button => {
-      button.addEventListener('click', () => {
-        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.card').forEach(card => card.style.display = 'none');
 
-        button.classList.add('active');
-        const targetTabId = button.getAttribute('data-tab') + 'Card';
-        document.getElementById(targetTabId).style.display = 'block';
-      });
-    });
+        // --- Utility Functions ---
+        function clearInputField(fieldId) {
+            document.getElementById(fieldId).value = '';
+        }
 
-    // 关闭模态框
-    window.onclick = function (event) {
-      const modal1 = document.getElementById('compareModal');
-      const modal2 = document.getElementById('customParamModal');
-      if (event.target == modal1) {
-        closeCompareModal();
-      }
-      if (event.target == modal2) {
-        closeCustomParamModal();
-      }
-    }
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
 
-  </script>
+        // --- Multi-Select Dropdown for URL Params ---
+        function toggleMultiSelectDropdown() {
+            const dropdown = document.getElementById('multi-select-dropdown');
+            const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
+            dropdown.style.display = isHidden ? 'block' : 'none';
+        }
 
+        function updateSelectedTagsDisplay() {
+            const container = document.getElementById('selected-tags-container');
+            container.innerHTML = '';
+            selectedUrlParams.forEach(param => {
+                if(param === '') return; // Skip 'all'
+                const tag = document.createElement('div');
+                tag.className = 'selected-tag';
+                tag.innerHTML = `${param} <button onclick="removeSelectedParam('${param}')"><i class="fas fa-times"></i></button>`;
+                container.appendChild(tag);
+            });
+            document.getElementById('multi-select-trigger-text').textContent = 
+                selectedUrlParams.length === 0 ? '请选择参数...' : 
+                selectedUrlParams.length === 1 ? selectedUrlParams[0] : 
+                `${selectedUrlParams.length} 项已选`;
+        }
+
+        function removeSelectedParam(paramToRemove) {
+            selectedUrlParams = selectedUrlParams.filter(p => p !== paramToRemove);
+            updateSelectedTagsDisplay();
+            const allOptions = document.querySelectorAll('#multi-select-dropdown .multi-select-option');
+            allOptions.forEach(opt => {
+                if (opt.dataset.value === paramToRemove) {
+                    opt.classList.remove('selected');
+                }
+            });
+        }
+
+        document.querySelectorAll('#multi-select-dropdown .multi-select-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const value = option.dataset.value;
+                
+                if (value === 'custom_params_manage') {
+                    openCustomParamsModal();
+                    return;
+                }
+
+                if (value === '') { // 'All' option
+                    if (selectedUrlParams.includes('')) {
+                        selectedUrlParams = [];
+                    } else {
+                        selectedUrlParams = [''];
+                    }
+                } else {
+                    if (selectedUrlParams.includes(value)) {
+                        selectedUrlParams = selectedUrlParams.filter(v => v !== value);
+                    } else {
+                        selectedUrlParams = selectedUrlParams.filter(v => v !== ''); // Remove 'all' if specific one is selected
+                        selectedUrlParams.push(value);
+                    }
+                }
+                
+                // Update UI
+                document.querySelectorAll('#multi-select-dropdown .multi-select-option').forEach(opt => {
+                    if (opt.dataset.value === value && value !== 'custom_params_manage') {
+                        opt.classList.toggle('selected', selectedUrlParams.includes(value));
+                    } else if (opt.dataset.value !== 'custom_params_manage'){
+                        opt.classList.toggle('selected', selectedUrlParams.includes(opt.dataset.value));
+                    }
+                });
+
+                updateSelectedTagsDisplay();
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('multi-select-dropdown');
+            const trigger = document.querySelector('.multi-select-trigger');
+            if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        function updateUrlParamDropdownOptions() {
+            const dropdown = document.getElementById('multi-select-dropdown');
+            const existingCustomItems = dropdown.querySelectorAll('.custom-param-option');
+            existingCustomItems.forEach(el => el.remove());
+
+            customUrlParams.forEach(param => {
+                const opt = document.createElement('div');
+                opt.className = 'multi-select-option custom-param-option';
+                opt.dataset.value = param;
+                opt.textContent = param;
+                dropdown.insertBefore(opt, document.querySelector('.multi-select-option[data-value="custom_params_manage"]'));
+            });
+        }
+
+
+        // --- URL Functions ---
+        function parseUrl() {
+            const urlStr = document.getElementById('url-input').value;
+            if (!urlStr) return;
+            try {
+                const url = new URL(urlStr);
+                const searchParams = new URLSearchParams(url.search);
+                const resultsDiv = document.getElementById('parsed-results');
+
+                let html = '<h4>解析结果:</h4>';
+
+                if (selectedUrlParams.includes('')) {
+                    // If 'all' is selected, show all
+                    for (const [key, value] of searchParams) {
+                        html += `<div class="result-item"><strong>${key}:</strong> ${value}</div>`;
+                    }
+                } else if (selectedUrlParams.length > 0) {
+                    // Show only selected params
+                    selectedUrlParams.forEach(param => {
+                        const value = searchParams.get(param);
+                        html += `<div class="result-item"><strong>${param}:</strong> ${value || 'N/A'}</div>`;
+                    });
+                } else {
+                    // If nothing is selected, show all as fallback
+                     for (const [key, value] of searchParams) {
+                        html += `<div class="result-item"><strong>${key}:</strong> ${value}</div>`;
+                    }
+                }
+                resultsDiv.innerHTML = html;
+            } catch (e) {
+                alert('URL格式错误: ' + e.message);
+            }
+        }
+
+        function compareUrls() {
+            const userUrlStr = document.getElementById('url-input').value;
+            const correctUrlStr = document.getElementById('correct-url-input').value;
+            if (!userUrlStr || !correctUrlStr) {
+                alert('请输入待比较和参考的URL！');
+                return;
+            }
+            try {
+                const userUrl = new URL(userUrlStr);
+                const correctUrl = new URL(correctUrlStr);
+                const userParams = new Map(new URLSearchParams(userUrl.search));
+                const correctParams = new Map(new URLSearchParams(correctUrl.search));
+                const allKeys = new Set([...userParams.keys(), ...correctParams.keys()]);
+                const resultsDiv = document.getElementById('comparison-results');
+
+                let html = '<h4>比对结果:</h4>';
+                for (const key of allKeys) {
+                    const userVal = userParams.get(key);
+                    const correctVal = correctParams.get(key);
+                    let cls = 'result-item';
+                    let status = '';
+                    if (userVal === undefined) {
+                        cls += ' error'; status = ' (缺失)';
+                    } else if (correctVal === undefined) {
+                        cls += ' error'; status = ' (多余)';
+                    } else if (userVal !== correctVal) {
+                        cls += ' mismatch'; status = ` (应为: ${correctVal})`;
+                    } else {
+                        cls += ' match'; status = ' (匹配)';
+                    }
+                    html += `<div class="${cls}"><strong>${key}:</strong> ${userVal || 'N/A'} <small>${status}</small></div>`;
+                }
+                resultsDiv.innerHTML = html;
+            } catch (e) {
+                alert('URL格式错误: ' + e.message);
+            }
+        }
+
+        function clearAllUrl() {
+            clearInputField('url-input');
+            clearInputField('correct-url-input');
+            selectedUrlParams = [];
+            updateSelectedTagsDisplay();
+            document.querySelectorAll('#multi-select-dropdown .multi-select-option').forEach(opt => opt.classList.remove('selected'));
+            clearResults('parsed-results');
+            clearResults('comparison-results');
+        }
+
+
+        // --- Custom URL Params Modal ---
+        function openCustomParamsModal() {
+            document.getElementById('custom-params-modal').style.display = 'flex';
+            renderSavedParamsList();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function renderSavedParamsList() {
+            const container = document.getElementById('saved-custom-params-list');
+            container.innerHTML = '';
+            customUrlParams.forEach(param => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${param}</span>
+                    <button class="secondary" onclick="removeCustomParam('${param}')"><i class="fas fa-trash"></i></button>
+                `;
+                container.appendChild(li);
+            });
+        }
+
+        function addCustomParam() {
+            const input = document.getElementById('new-param-name');
+            const name = input.value.trim();
+            if (name && !customUrlParams.includes(name)) {
+                customUrlParams.push(name);
+                renderSavedParamsList();
+                updateUrlParamDropdownOptions(); // Add to dropdown
+                input.value = '';
+            }
+        }
+
+        function removeCustomParam(name) {
+            customUrlParams = customUrlParams.filter(p => p !== name);
+            renderSavedParamsList();
+            updateUrlParamDropdownOptions(); // Remove from dropdown
+            // Also remove from selected if present
+            removeSelectedParam(name);
+        }
+
+        function saveAndCloseParamsModal() {
+            localStorage.setItem('customUrlParams', JSON.stringify(customUrlParams));
+            closeModal('custom-params-modal');
+        }
+
+
+        // --- JSON Functions ---
+        function jsonStringifySafe(obj) {
+            return JSON.stringify(obj, (key, val) => typeof val === 'function' ? val.toString() : val);
+        }
+
+        function extractJsonFields() {
+            const jsonText = document.getElementById('json-input').value;
+            const pathsText = document.getElementById('field-paths').value;
+            if (!jsonText || !pathsText) {
+                alert('请输入JSON和字段路径！');
+                return;
+            }
+            try {
+                let jsonData;
+                try {
+                    jsonData = JSON.parse(jsonText);
+                } catch {
+                    // Attempt to fix common non-standard JSON issues
+                    let fixedJsonText = jsonText
+                        .replace(/(\w+):/g, '"$1":') // Wrap unquoted keys in quotes
+                        .replace(/'/g, '"'); // Replace single quotes with double quotes
+                    jsonData = JSON.parse(fixedJsonText);
+                }
+
+                const paths = pathsText.split('\n').map(p => p.trim()).filter(Boolean);
+                const resultsDiv = document.getElementById('json-results');
+                let html = '<h4>提取结果:</h4>';
+                
+                paths.forEach(path => {
+                    // Determine if it's a full path (contains dots) or a simple field name
+                    const isFullPath = path.includes('.');
+                    
+                    if (isFullPath) {
+                        // Exact Path Match
+                        try {
+                            const value = getNestedValue(jsonData, path);
+                            const valueStr = value !== undefined ? jsonStringifySafe(value) : 'undefined';
+                            html += `<div class="result-item" data-field="${path}">
+                                        <strong>${path}:</strong> ${valueStr}
+                                        <input type="text" class="verification-input" placeholder="输入期望值..." data-field="${path}" data-actual="${valueStr}">
+                                     </div>`;
+                        } catch (e) {
+                            html += `<div class="result-item error"><strong>${path}:</strong> 错误 - ${e.message}</div>`;
+                        }
+                    } else {
+                        // Fuzzy Field Name Search
+                        const matches = findValuesByFieldName(jsonData, path);
+                        if (matches.length > 0) {
+                            matches.forEach((match, idx) => {
+                                const uniqueKey = `${path}_${idx}`;
+                                const valueStr = jsonStringifySafe(match.value);
+                                html += `<div class="result-item" data-field="${uniqueKey}">
+                                            <strong>[模糊匹配] ${match.path}:</strong> ${valueStr}
+                                            <input type="text" class="verification-input" placeholder="输入期望值..." data-field="${uniqueKey}" data-actual="${valueStr}">
+                                         </div>`;
+                            });
+                        } else {
+                            html += `<div class="result-item error"><strong>[未找到] ${path}:</strong> 在JSON中未找到该字段名</div>`;
+                        }
+                    }
+                });
+                resultsDiv.innerHTML = html;
+                attachVerificationListeners();
+            } catch (e) {
+                alert('JSON格式错误或自动修复失败: ' + e.message);
+            }
+        }
+
+        function getNestedValue(obj, path) {
+            const keys = path.replace(/\[(\w+)\]/g, '.$1').split('.');
+            let result = obj;
+            for (const key of keys) {
+                if (result === undefined || result === null) break;
+                result = result[key];
+            }
+            return result;
+        }
+
+        function findValuesByFieldName(obj, fieldName, path = '', results = []) {
+            if (obj !== null && typeof obj === 'object') {
+                Object.keys(obj).forEach(key => {
+                    const newPath = path ? `${path}.${key}` : key;
+                    if (key === fieldName) {
+                        results.push({ path: newPath, value: obj[key] });
+                    }
+                    findValuesByFieldName(obj[key], fieldName, newPath, results);
+                });
+            }
+            return results;
+        }
+
+
+        function attachVerificationListeners() {
+            document.querySelectorAll('#json-results .verification-input').forEach(input => {
+                input.removeEventListener('input', handleVerification);
+                input.addEventListener('input', handleVerification);
+            });
+        }
+
+        function handleVerification(e) {
+            const input = e.target;
+            const field = input.dataset.field;
+            const actual = input.dataset.actual;
+            const expected = input.value;
+            
+            const item = input.closest('.result-item');
+            item.classList.remove('match', 'mismatch');
+            
+            if (expected === '') return;
+            
+            if (actual == expected) {
+                item.classList.add('match');
+            } else {
+                item.classList.add('mismatch');
+            }
+        }
+
+        function addCustomFieldPath() {
+            const input = document.getElementById('new-field-path');
+            const path = input.value.trim();
+            if (path && !customJsonFields.includes(path)) {
+                customJsonFields.push(path);
+                localStorage.setItem('customJsonFields', JSON.stringify(customJsonFields));
+                renderSavedJsonFields();
+                input.value = '';
+            }
+        }
+
+        function renderSavedJsonFields() {
+            const container = document.getElementById('saved-custom-fields-json');
+            container.innerHTML = '';
+            customJsonFields.forEach(field => {
+                const div = document.createElement('div');
+                div.className = 'custom-field-item';
+                div.innerHTML = `
+                    <span onclick="insertFieldPathIntoTextarea('${field}')">${field}</span>
+                    <button class="secondary" onclick="removeCustomJsonField('${field}')"><i class="fas fa-trash"></i></button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function insertFieldPathIntoTextarea(path) {
+            const textarea = document.getElementById('field-paths');
+            const current = textarea.value;
+            if (!current.split('\n').includes(path)) {
+                textarea.value = current ? current + '\n' + path : path;
+            }
+        }
+
+        function removeCustomJsonField(path) {
+            customJsonFields = customJsonFields.filter(f => f !== path);
+            localStorage.setItem('customJsonFields', JSON.stringify(customJsonFields));
+            renderSavedJsonFields(); // Refresh the list
+        }
+
+        function clearAllJson() {
+            clearInputField('json-input');
+            clearInputField('field-paths');
+            clearResults('json-results');
+            document.getElementById('verification-results').innerHTML = '<p>请先在左侧执行“提取”操作。</p>';
+        }
+
+
+        // --- Time Functions ---
+        function convertTime() {
+            const conversionType = document.getElementById('conversion-type').value;
+            const outputFormat = document.getElementById('output-format').value;
+            const inputValue = parseFloat(document.getElementById('input-value').value);
+
+            if (isNaN(inputValue) || inputValue < 0) {
+                document.getElementById('time-conversion-result').innerHTML = '<div class="result-item error">请输入有效的非负数字！</div>';
+                return;
+            }
+
+            let totalSeconds = 0;
+            let totalMilliseconds = 0;
+
+            switch (conversionType) {
+                case 'minutes-to-hours-minutes':
+                    totalSeconds = inputValue * 60;
+                    break;
+                case 'minutes-to-minutes-seconds':
+                    totalSeconds = inputValue * 60;
+                    break;
+                case 'hours-to-minutes-seconds':
+                    totalSeconds = inputValue * 60 * 60;
+                    break;
+                case 'seconds-to-minutes-seconds':
+                    totalSeconds = inputValue;
+                    break;
+                case 'milliseconds-to-minutes-seconds':
+                    totalMilliseconds = inputValue;
+                    totalSeconds = inputValue / 1000;
+                    break;
+                default:
+                    document.getElementById('time-conversion-result').innerHTML = '<div class="result-item error">未知转换类型</div>';
+                    return;
+            }
+
+            let resultText = '';
+            const absTotalSeconds = Math.abs(totalSeconds);
+            const absTotalMilliseconds = Math.abs(totalMilliseconds);
+            
+            const sign = totalSeconds < 0 ? '-' : '';
+
+            switch (outputFormat) {
+                case 'hms':
+                    const hours = Math.floor(absTotalSeconds / 3600);
+                    const minutes = Math.floor((absTotalSeconds % 3600) / 60);
+                    const seconds = Math.floor(absTotalSeconds % 60);
+                    resultText = `${sign}${hours}小时${minutes}分${seconds}秒`;
+                    break;
+                case 'ms':
+                    const mins = Math.floor(absTotalSeconds / 60);
+                    const secs = Math.floor(absTotalSeconds % 60);
+                    resultText = `${sign}${mins}分${secs}秒`;
+                    break;
+                case 'total_seconds':
+                    resultText = `${sign}${Math.round(absTotalSeconds)} 秒`;
+                    break;
+                case 'total_milliseconds':
+                    resultText = `${sign}${Math.round(absTotalMilliseconds || absTotalSeconds * 1000)} 毫秒`;
+                    break;
+                default:
+                    resultText = '未知输出格式';
+            }
+
+            document.getElementById('time-conversion-result').innerHTML = `<div class="result-item match"><strong>转换结果:</strong> ${resultText}</div>`;
+        }
+
+        function convertTimestamp() {
+            const ts = parseFloat(document.getElementById('timestamp-input').value);
+            if (isNaN(ts)) {
+                document.getElementById('timestamp-result').innerHTML = '<div class="result-item error">请输入有效的时间戳！</div>';
+                return;
+            }
+            const d = ts > 1e12 ? new Date(ts) : new Date(ts * 1000);
+            document.getElementById('timestamp-result').innerHTML = `<div class="result-item"><strong>转换结果:</strong> ${d.toLocaleString('zh-CN')}</div>`;
+        }
+
+    </script>
 </body>
-
 </html>
