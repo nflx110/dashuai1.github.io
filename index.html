@@ -3,42 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能数据解析工具</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>暖风智能数据解析</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
     <style>
         :root {
-            /* 默认主题 (蓝) */
             --primary-color: #4361ee;
             --secondary-color: #3f37c9;
             --accent-color: #4cc9f0;
-            --success-color: #4ade80;
-            --warning-color: #facc15;
-            --danger-color: #f87171;
-            --background-color: #f8fafc;
+            --success-color: #22c55e;
+            --warning-color: #eab308;
+            --danger-color: #ef4444;
+            --background-color: #f1f5f9;
             --surface-color: #ffffff;
-            --text-primary: #1e293b;
+            --text-primary: #0f172a;
             --text-secondary: #64748b;
             --border-color: #e2e8f0;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --radius-sm: 0.375rem;
-            --radius-md: 0.5rem;
-            --radius-lg: 0.75rem;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --header-h: 46px;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            font-family: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
             background-color: var(--background-color);
             color: var(--text-primary);
-            line-height: 1.6;
-            padding: 0;
+            line-height: 1.55;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -47,669 +42,769 @@
             background-attachment: fixed;
         }
 
+        body.has-bg .app-container,
+        body.has-bg > footer {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+        }
+
+        body.has-bg.dark-surface .app-container,
+        body.has-bg.dark-surface > footer {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(12px);
+        }
+
         .app-container {
-            max-width: 1400px;
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 20px 20px 32px;
             width: 100%;
+            flex: 1;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
         }
 
         header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 1.5rem 2rem;
+            background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+            padding: 0 20px;
+            min-height: var(--header-h);
             box-shadow: var(--shadow-md);
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 200;
         }
 
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1400px;
+        .header-inner {
+            max-width: 1280px;
             margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 6px 0;
         }
 
-        h1 {
-            font-size: 1.8rem;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
         }
 
-        .controls {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
+        .brand i { opacity: 0.95; }
 
-        .control-group {
+        .header-controls {
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
+            gap: 12px 16px;
             align-items: flex-end;
         }
 
-        .control-group label {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 0.25rem;
+        .field-inline label {
+            display: block;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            opacity: 0.85;
+            margin-bottom: 4px;
         }
 
-        .theme-selector select,
-        .wallpaper-input {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 0.5rem 1rem;
+        .field-inline select {
+            min-width: 140px;
+            padding: 8px 12px;
             border-radius: var(--radius-md);
-            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            font-size: 0.9rem;
         }
 
-        .theme-selector select option,
-        .wallpaper-input option {
-            background-color: var(--surface-color);
+        .field-inline select option {
+            background: var(--surface-color);
             color: var(--text-primary);
         }
 
-        .wallpaper-input {
-            width: 250px;
+        .wallpaper-select { min-width: 180px; }
+
+        .tabs-wrap {
+            position: sticky;
+            top: var(--header-h);
+            z-index: 150;
+            margin: 0 -4px 20px;
+            padding: 4px 0 0;
         }
 
         .tabs {
             display: flex;
-            background-color: var(--surface-color);
+            gap: 6px;
+            flex-wrap: wrap;
+            background: var(--surface-color);
+            padding: 6px;
             border-radius: var(--radius-lg);
-            overflow: hidden;
-            margin: 1.5rem 0;
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
         }
 
         .tab-button {
-            flex: 1;
-            padding: 1rem 1.5rem;
-            background: none;
+            flex: 1 1 auto;
+            min-width: 120px;
+            padding: 10px 14px;
             border: none;
+            border-radius: var(--radius-md);
+            background: transparent;
             color: var(--text-secondary);
             font-weight: 600;
+            font-size: 0.92rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .tab-button i {
-            font-size: 1.1rem;
+            gap: 8px;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
         }
 
         .tab-button:hover:not(.active) {
-            background-color: #f1f5f9;
+            background: #f8fafc;
             color: var(--text-primary);
         }
 
         .tab-button.active {
-            background-color: var(--primary-color);
-            color: white;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+            box-shadow: var(--shadow-sm);
         }
 
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
+        .tab-content { display: none; animation: fadeIn 0.25s ease; }
+        .tab-content.active { display: block; }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .card-grid {
+        .layout-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(500px, 100%), 1fr));
-            gap: 1.5rem;
-            margin-top: 1rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .layout-grid { grid-template-columns: 1fr; }
+            .tabs .tab-button { min-width: calc(50% - 6px); }
+        }
+
+        @media (max-width: 560px) {
+            .tabs .tab-button { min-width: 100%; }
         }
 
         .card {
-            background-color: var(--surface-color);
+            background: var(--surface-color);
             border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            padding: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            padding: 20px;
         }
 
         .card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             color: var(--text-primary);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
-        .form-group {
-            margin-bottom: 1rem;
-            position: relative; /* For absolute positioning of clear button */
-        }
-
-        .form-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        label {
-            display: block;
-            font-weight: 500;
+        .card-title .hint {
+            font-weight: 400;
+            font-size: 0.8rem;
             color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
+            margin-left: auto;
         }
 
-        input, textarea, select {
+        .form-group { margin-bottom: 14px; }
+
+        .form-group > label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap textarea,
+        .input-wrap input[type="text"],
+        .input-wrap input[type="number"] {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 10px 40px 10px 12px;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
-            background-color: #f9fafb;
-            font-size: 1rem;
+            background: #f8fafc;
+            font-size: 0.95rem;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        input:focus, textarea:focus, select:focus {
+        .input-wrap textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: ui-monospace, "SF Mono", Menlo, monospace;
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+
+        .input-wrap input:focus,
+        .input-wrap textarea:focus,
+        select:focus {
             outline: none;
             border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
         }
 
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-            font-family: inherit;
+        select.conversion-select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            font-size: 0.92rem;
         }
 
-        .clear-btn-input {
+        .clear-in {
             position: absolute;
-            right: 0.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
+            right: 8px;
+            top: 10px;
+            width: 28px;
+            height: 28px;
             border: none;
+            border-radius: var(--radius-sm);
+            background: transparent;
             color: var(--text-secondary);
             cursor: pointer;
-            padding: 0.25rem;
-            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .clear-btn-input:hover {
-            background-color: #e2e8f0;
+        .clear-in:hover {
+            background: #e2e8f0;
             color: var(--text-primary);
         }
 
-        .button-group {
+        .input-wrap textarea ~ .clear-in { top: 10px; }
+
+        .btn-row {
             display: flex;
-            gap: 0.75rem;
-            margin-top: 1rem;
             flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
         }
 
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.25rem;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            font-weight: 500;
+        .btn {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            transition: background-color 0.2s, transform 0.1s;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            background: var(--primary-color);
+            color: #fff;
+            transition: filter 0.15s, transform 0.1s;
         }
 
-        button:hover {
-            background-color: var(--secondary-color);
-            transform: translateY(-1px);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button.secondary {
-            background-color: #f1f5f9;
+        .btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn.secondary {
+            background: #e2e8f0;
             color: var(--text-primary);
         }
-
-        button.secondary:hover {
-            background-color: #e2e8f0;
+        .btn.secondary:hover { background: #cbd5e1; }
+        .btn.ghost {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
         }
+        .btn.sm { padding: 6px 10px; font-size: 0.8rem; }
 
-        .custom-fields-container {
-            margin-top: 1rem;
-        }
-
-        .custom-field-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.5rem;
-            background-color: #f1f5f9;
-            border-radius: var(--radius-sm);
-            margin-bottom: 0.25rem;
-        }
-
-        .custom-field-item span {
-            font-family: monospace;
-            word-break: break-all;
-            cursor: pointer;
-        }
-
-        .custom-field-item button {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-        }
-
-        .result-container {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background-color: #f8fafc;
+        .result-box {
+            margin-top: 16px;
+            padding: 14px;
+            background: #f8fafc;
             border-radius: var(--radius-md);
             border: 1px dashed var(--border-color);
-            min-height: 100px;
+            min-height: 72px;
+            font-size: 0.88rem;
         }
 
-        .result-item {
-            padding: 0.75rem;
+        .result-row {
+            padding: 10px 12px;
             border-radius: var(--radius-sm);
-            margin-bottom: 0.5rem;
-            font-family: monospace;
-            word-break: break-all;
-            background-color: white;
+            margin-bottom: 8px;
+            background: #fff;
             border-left: 3px solid var(--primary-color);
+            word-break: break-all;
+            font-family: ui-monospace, Menlo, monospace;
+            font-size: 0.84rem;
         }
 
-        .result-item.match {
-            border-left-color: var(--success-color);
-            background-color: #f0fdf4;
+        .result-row:last-child { margin-bottom: 0; }
+        .result-row.match { border-left-color: var(--success-color); background: #f0fdf4; }
+        .result-row.warn { border-left-color: var(--warning-color); background: #fefce8; }
+        .result-row.err { border-left-color: var(--danger-color); background: #fef2f2; }
+
+        .result-row .row-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
         }
 
-        .result-item.mismatch {
-            border-left-color: var(--warning-color);
-            background-color: #fefce8;
+        .copy-one {
+            flex-shrink: 0;
         }
 
-        .result-item.error {
-            border-left-color: var(--danger-color);
-            background-color: #fef2f2;
-        }
-
-        .verification-input {
-            margin-top: 0.5rem;
-            width: calc(100% - 2rem);
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        /* Multi-Select Dropdown Styles */
-        .multi-select-wrapper {
+        .multi-select {
             position: relative;
-            width: 100%;
         }
 
-        .multi-select-trigger {
-            padding: 0.75rem 1rem;
+        .multi-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
-            background-color: #f9fafb;
+            background: #f8fafc;
             cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            font-size: 0.9rem;
         }
 
-        .multi-select-dropdown {
+        .multi-panel {
+            display: none;
             position: absolute;
-            top: 100%;
             left: 0;
             right: 0;
+            top: calc(100% + 4px);
+            max-height: 220px;
+            overflow-y: auto;
             background: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-top: none;
-            border-radius: 0 0 var(--radius-md) var(--radius-md);
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 10;
-            display: none;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            z-index: 80;
         }
 
-        .multi-select-option {
-            padding: 0.5rem 1rem;
+        .multi-panel.open { display: block; }
+
+        .multi-opt {
+            padding: 8px 12px;
             cursor: pointer;
+            font-size: 0.88rem;
         }
 
-        .multi-select-option:hover {
-            background-color: #f1f5f9;
-        }
+        .multi-opt:hover { background: #f1f5f9; }
+        .multi-opt.selected { background: #dbeafe; color: var(--primary-color); font-weight: 600; }
+        .multi-opt.manage { color: var(--primary-color); border-top: 1px solid var(--border-color); }
 
-        .multi-select-option.selected {
-            background-color: #dbeafe;
-            color: var(--primary-color);
-        }
-
-        .selected-tags {
+        .tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.25rem;
-            margin-top: 0.25rem;
+            gap: 6px;
+            margin-top: 8px;
         }
 
-        .selected-tag {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            display: flex;
+        .tag {
+            display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: var(--primary-color);
+            color: #fff;
+            font-size: 0.75rem;
         }
 
-        .selected-tag button {
+        .tag button {
             background: none;
             border: none;
-            color: white;
+            color: inherit;
             cursor: pointer;
             padding: 0;
+            line-height: 1;
         }
 
-        /* Modal Styles */
+        .custom-list .item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #f1f5f9;
+            border-radius: var(--radius-sm);
+            margin-bottom: 6px;
+            font-family: ui-monospace, monospace;
+            font-size: 0.85rem;
+        }
+
+        .custom-list .item span { cursor: pointer; word-break: break-all; }
+
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
             z-index: 1000;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        .modal-content {
-            background-color: var(--surface-color);
-            padding: 2rem;
+        .modal.show { display: flex; }
+
+        .modal-card {
+            background: var(--surface-color);
+            width: min(520px, 100%);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
+            max-height: 85vh;
+            overflow: auto;
+            padding: 22px;
         }
 
-        .modal-header {
+        .modal-head {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            justify-content: space-between;
+            margin-bottom: 16px;
         }
 
-        .modal-header h3 {
-            margin: 0;
-        }
+        .modal-head h3 { font-size: 1.1rem; }
 
-        .close-modal {
-            background: none;
+        .close-x {
             border: none;
+            background: none;
             font-size: 1.5rem;
+            line-height: 1;
             cursor: pointer;
             color: var(--text-secondary);
         }
 
-        .modal-body ul {
-            list-style-type: none;
+        .verify-input {
+            width: 100%;
+            margin-top: 8px;
+            padding: 8px 10px;
+            font-size: 0.85rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            background: var(--text-primary);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            z-index: 2000;
+            opacity: 0;
+            transition: transform 0.28s ease, opacity 0.28s ease;
+            max-width: min(90vw, 400px);
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
             padding: 0;
-        }
-
-        .modal-body li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .modal-actions {
-            margin-top: 1rem;
-            display: flex;
-            gap: 0.5rem;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
         }
 
         footer {
             text-align: center;
-            padding: 2rem;
+            padding: 16px;
+            font-size: 0.8rem;
             color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin-top: auto;
         }
 
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
-            
-            .controls {
-                width: 100%;
-                flex-direction: column;
-                align-items: stretch;
-            }
+        .kbd {
+            font-size: 0.72rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: #f1f5f9;
+            color: var(--text-secondary);
+        }
 
-            .control-group {
-                align-items: stretch;
-            }
+        .split-inline {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: stretch;
+        }
 
-            .wallpaper-input {
-                width: 100%;
-            }
-            
-            .card-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .tabs {
-                flex-direction: column;
-            }
+        .split-inline .input-wrap { flex: 1; min-width: 120px; }
+        .split-inline > .btn {
+            flex-shrink: 0;
+            align-self: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .path-input-row .input-wrap input { padding-right: 36px; }
+
+        .doc-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .doc-toolbar select {
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            font-size: 0.9rem;
+            min-width: 220px;
+        }
+
+        .doc-pre {
+            max-height: min(58vh, 640px);
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: ui-monospace, Menlo, monospace;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            padding: 14px;
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: var(--radius-md);
+            border: 1px solid #334155;
+        }
+
+        .decode-box {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .decode-steps {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="header-content">
-            <h1><i class="fas fa-wrench"></i> 智能数据解析工具</h1>
-            <div class="controls">
-                <div class="control-group">
-                    <label for="theme-select">主题颜色</label>
-                    <select id="theme-select">
-                        <option value="blue">蓝色 (默认)</option>
-                        <option value="green">绿色</option>
-                        <option value="purple">紫色</option>
-                        <option value="red">红色</option>
-                        <option value="orange">橙色</option>
-                        <option value="teal">青色</option>
-                        <option value="indigo">靛蓝</option>
-                        <option value="pink">粉色</option>
-                        <option value="yellow">黄色</option>
-                        <option value="gray">灰色</option>
-                        <option value="dark">深色模式</option>
-                    </select>
+        <div class="header-inner">
+            <div class="brand"><i class="fas fa-wind"></i> 暖风智能数据解析</div>
+            <div class="header-controls">
+                <div class="field-inline">
+                    <label for="theme-select">主题</label>
+                    <select id="theme-select" aria-label="主题颜色"></select>
                 </div>
-                <div class="control-group">
-                    <label for="wallpaper-input">自定义壁纸</label>
-                    <select id="wallpaper-input" onchange="setCustomBackground(this.value)">
-                        <option value="">默认背景</option>
-                        <option value="https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1920&auto=format&fit=crop">森林晨雾</option>
-                        <option value="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1920&auto=format&fit=crop">山川湖泊</option>
-                        <option value="https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1920&auto=format&fit=crop">自然风光</option>
-                        <option value="custom">自定义URL...</option>
-                    </select>
+                <div class="field-inline">
+                    <label for="wallpaper-input">背景</label>
+                    <select id="wallpaper-input" class="wallpaper-select" aria-label="页面背景"></select>
                 </div>
             </div>
         </div>
     </header>
 
     <div class="app-container">
-        <nav class="tabs">
-            <button class="tab-button active" data-tab="url-tab">
-                <i class="fas fa-link"></i> URL 解析
-            </button>
-            <button class="tab-button" data-tab="json-tab">
-                <i class="fas fa-file-code"></i> JSON 解析
-            </button>
-            <button class="tab-button" data-tab="time-tab">
-                <i class="fas fa-clock"></i> 时间转换
-            </button>
-        </nav>
+        <div class="tabs-wrap">
+            <nav class="tabs" role="tablist" aria-label="功能分区">
+                <button type="button" class="tab-button active" role="tab" aria-selected="true" data-tab="url-tab"><i class="fas fa-link"></i> URL</button>
+                <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="docs-tab"><i class="fas fa-book"></i> 文档</button>
+                <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="json-tab"><i class="fas fa-braces"></i> JSON</button>
+                <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="time-tab"><i class="fas fa-clock"></i> 时间</button>
+                <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="codec-tab"><i class="fas fa-shield-halved"></i> 编码</button>
+            </nav>
+        </div>
 
         <main>
-            <!-- URL Tab -->
-            <section id="url-tab" class="tab-content active">
-                <div class="card-grid">
+            <section id="url-tab" class="tab-content active" role="tabpanel">
+                <div class="layout-grid">
                     <div class="card">
-                        <h3 class="card-title"><i class="fas fa-cogs"></i> 解析与提取</h3>
+                        <h2 class="card-title"><i class="fas fa-screwdriver-wrench"></i> URL 解析 <span class="hint"><span class="kbd">⌘/Ctrl</span>+<span class="kbd">Enter</span> 解析</span></h2>
                         <div class="form-group">
-                            <label for="url-input"><i class="fas fa-globe-asia"></i> 输入URL</label>
-                            <div class="form-row">
-                                <textarea id="url-input" placeholder="https://example.com/path?param1=value1&param2=value2"></textarea>
-                                <button class="clear-btn-input" title="清空" onclick="clearInputField('url-input')"><i class="fas fa-times"></i></button>
+                            <label for="url-input">原始 URL（可省略协议，将自动补全 https://）</label>
+                            <div class="input-wrap">
+                                <textarea id="url-input" placeholder="https://example.com/path?a=1&b=2" spellcheck="false"></textarea>
+                                <button type="button" class="clear-in" title="清空" data-clear="url-input" aria-label="清空"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="param-select"><i class="fas fa-list"></i> 选择参数</label>
-                            <div class="multi-select-wrapper">
-                                <div class="multi-select-trigger" onclick="toggleMultiSelectDropdown()">
-                                    <span id="multi-select-trigger-text">请选择参数...</span>
-                                    <i class="fas fa-chevron-down"></i>
+                            <label>要展示的查询参数（可多选）</label>
+                            <div class="multi-select" id="url-multi-root">
+                                <div class="multi-trigger" id="url-multi-trigger" tabindex="0" role="button" aria-expanded="false" aria-haspopup="listbox">
+                                    <span id="url-multi-label">未选择：解析时将显示全部参数</span>
+                                    <i class="fas fa-chevron-down" aria-hidden="true"></i>
                                 </div>
-                                <div class="multi-select-dropdown" id="multi-select-dropdown">
-                                    <div class="multi-select-option" data-value="">全部参数</div>
-                                    <div class="multi-select-option" data-value="utm_source">utm_source</div>
-                                    <div class="multi-select-option" data-value="utm_medium">utm_medium</div>
-                                    <div class="multi-select-option" data-value="utm_campaign">utm_campaign</div>
-                                    <div class="multi-select-option" data-value="id">id</div>
-                                    <div class="multi-select-option" data-value="ref">ref</div>
-                                    <!-- Custom params will be injected here -->
-                                    <div class="multi-select-option" data-value="custom_params_manage">管理自定义参数...</div>
-                                </div>
+                                <div class="multi-panel" id="url-multi-panel" role="listbox"></div>
                             </div>
-                            <div class="selected-tags" id="selected-tags-container"></div>
+                            <div class="tags" id="url-selected-tags" aria-live="polite"></div>
                         </div>
-                        <div class="button-group">
-                            <button onclick="parseUrl()"><i class="fas fa-play"></i> 解析</button>
-                            <button class="secondary" onclick="clearAllUrl()"><i class="fas fa-broom"></i> 清空全部</button>
+                        <div class="btn-row">
+                            <button type="button" class="btn" id="btn-parse-url"><i class="fas fa-play"></i> 解析</button>
+                            <button type="button" class="btn secondary" id="btn-url-components"><i class="fas fa-sitemap"></i> 结构概要</button>
+                            <button type="button" class="btn secondary" id="btn-copy-url-results"><i class="fas fa-copy"></i> 复制结果文本</button>
+                            <button type="button" class="btn ghost" id="btn-clear-url"><i class="fas fa-broom"></i> 清空</button>
                         </div>
-                        <div id="parsed-results" class="result-container"></div>
+                        <div id="parsed-results" class="result-box" aria-live="polite"></div>
+                        <div class="decode-box">
+                            <h3 class="card-title" style="font-size:0.95rem;margin-bottom:10px"><i class="fas fa-unlock-keyhole"></i> 加密参数解密（如 ee、e、user_ip 等 Base64 / 多次 URL 编码）</h3>
+                            <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:10px">粘贴单段密文，或从上方解析结果点「解密」带入。依次尝试：URL 解码（含 +）→ Base64（含 URL-safe）→ UTF-8 文本；若结果为 JSON 则自动美化。</p>
+                            <div class="input-wrap">
+                                <textarea id="decode-input" placeholder="粘贴 ee=… 的值（不要带参数名）" spellcheck="false" rows="3"></textarea>
+                                <button type="button" class="clear-in" data-clear="decode-input" aria-label="清空"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="btn-row">
+                                <button type="button" class="btn" id="btn-decode-run"><i class="fas fa-wand-magic-sparkles"></i> 一键解密</button>
+                                <button type="button" class="btn secondary" id="btn-decode-from-url"><i class="fas fa-filter"></i> 从当前 URL 取 ee</button>
+                                <button type="button" class="btn ghost" id="btn-decode-copy"><i class="fas fa-copy"></i> 复制结果</button>
+                            </div>
+                            <div id="decode-output" class="result-box" aria-live="polite"></div>
+                            <div class="decode-steps" id="decode-steps"></div>
+                        </div>
                     </div>
                     <div class="card">
-                        <h3 class="card-title"><i class="fas fa-exchange-alt"></i> 对比验证</h3>
+                        <h2 class="card-title"><i class="fas fa-code-compare"></i> 查询串对比</h2>
                         <div class="form-group">
-                            <label for="correct-url-input"><i class="fas fa-check-circle"></i> 参考URL</label>
-                            <div class="form-row">
-                                <textarea id="correct-url-input" placeholder="粘贴正确的URL进行比对..."></textarea>
-                                <button class="clear-btn-input" title="清空" onclick="clearInputField('correct-url-input')"><i class="fas fa-times"></i></button>
+                            <label for="correct-url-input">参考 URL</label>
+                            <div class="input-wrap">
+                                <textarea id="correct-url-input" placeholder="粘贴标准链接…" spellcheck="false"></textarea>
+                                <button type="button" class="clear-in" title="清空" data-clear="correct-url-input" aria-label="清空"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
-                        <button onclick="compareUrls()"><i class="fas fa-search"></i> 开始比对</button>
-                        <div id="comparison-results" class="result-container"></div>
+                        <div class="btn-row">
+                            <button type="button" class="btn" id="btn-compare-url"><i class="fas fa-magnifying-glass"></i> 比对</button>
+                            <button type="button" class="btn secondary" id="btn-copy-compare"><i class="fas fa-copy"></i> 复制比对</button>
+                        </div>
+                        <div id="comparison-results" class="result-box" aria-live="polite"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- JSON Tab -->
-            <section id="json-tab" class="tab-content">
-                <div class="card-grid">
+            <section id="docs-tab" class="tab-content" role="tabpanel">
+                <div class="layout-grid">
+                    <div class="card" style="grid-column: 1 / -1">
+                        <h2 class="card-title"><i class="fas fa-book-open"></i> 接口文档摘录对照</h2>
+                        <p style="font-size:0.86rem;color:var(--text-secondary);margin-bottom:12px">以下为从您提供的 PDF/DOCX 抽取并<strong>内嵌在页面中</strong>的节选（Mixer 为 PDF 文本片段），便于与 Tracking / Mixer 参数对照。完整内容请以本地原件为准：<code>Mixer 接口文档.pdf</code>、<code>奇效Dsp Tracking 接口文档.docx</code>、<code>Cupid Tracking GET 接口.docx</code>。</p>
+                        <div class="doc-toolbar">
+                            <label for="doc-ref-select" class="sr-only">选择文档</label>
+                            <select id="doc-ref-select" aria-label="选择预置文档">
+                                <option value="mixer">Mixer 接口文档（摘录）</option>
+                                <option value="dsp">奇效 DSP Tracking（摘录）</option>
+                                <option value="cupid">Cupid Tracking GET（摘录）</option>
+                            </select>
+                            <button type="button" class="btn secondary sm" id="btn-doc-copy"><i class="fas fa-copy"></i> 复制当前文档</button>
+                            <button type="button" class="btn sm" id="btn-doc-compare-url"><i class="fas fa-magnifying-glass-chart"></i> 用当前 URL 参数检索文档</button>
+                        </div>
+                        <pre id="doc-ref-body" class="doc-pre" role="region" aria-label="文档正文"></pre>
+                        <div id="doc-compare-result" class="result-box" style="margin-top:14px" aria-live="polite"></div>
+                        <p style="font-size:0.8rem;color:var(--text-secondary);margin-top:12px"><strong>延伸：</strong>在「URL」页解析链接后，可用「检索文档」快速查看哪些参数名在节选中出现，辅助联调；密文体请用「加密参数解密」区处理。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="json-tab" class="tab-content" role="tabpanel">
+                <div class="layout-grid">
                     <div class="card">
-                        <h3 class="card-title"><i class="fas fa-cogs"></i> 解析与提取</h3>
+                        <h2 class="card-title"><i class="fas fa-file-code"></i> JSON 提取 <span class="hint"><span class="kbd">⌘/Ctrl</span>+<span class="kbd">Enter</span></span></h2>
                         <div class="form-group">
-                            <label for="json-input"><i class="fas fa-code"></i> 输入JSON</label>
-                            <div class="form-row">
-                                <textarea id="json-input" placeholder='{ "user": { "name": "张三" } }'></textarea>
-                                <button class="clear-btn-input" title="清空" onclick="clearInputField('json-input')"><i class="fas fa-times"></i></button>
+                            <label for="json-input">JSON 文本</label>
+                            <div class="input-wrap">
+                                <textarea id="json-input" placeholder='{ "user": { "name": "张三" } }' spellcheck="false"></textarea>
+                                <button type="button" class="clear-in" data-clear="json-input" aria-label="清空"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="btn-row" style="margin-top:0">
+                            <button type="button" class="btn secondary sm" id="btn-format-json"><i class="fas fa-indent"></i> 格式化</button>
+                            <button type="button" class="btn secondary sm" id="btn-minify-json"><i class="fas fa-compress"></i> 压缩为一行</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="field-paths">字段路径（每行一条；支持 a.b、arr[0].x）</label>
+                            <div class="input-wrap">
+                                <textarea id="field-paths" spellcheck="false">user.name
+name</textarea>
+                                <button type="button" class="clear-in" data-clear="field-paths" aria-label="清空"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="field-paths"><i class="fas fa-key"></i> 字段路径或字段名 (每行一个)</label>
-                            <div class="form-row">
-                                <textarea id="field-paths" placeholder="user.name&#10;name&#10;user.id">user.name
-name
-user.id
-settings.theme</textarea>
-                                <button class="clear-btn-input" title="清空" onclick="clearInputField('field-paths')"><i class="fas fa-times"></i></button>
+                            <label for="new-field-path">保存常用路径</label>
+                            <div class="split-inline path-input-row">
+                                <div class="input-wrap">
+                                    <input type="text" id="new-field-path" placeholder="例如 profile.avatar" autocomplete="off">
+                                    <button type="button" class="clear-in" data-clear="new-field-path" aria-label="清空" style="top:8px"><i class="fas fa-times"></i></button>
+                                </div>
+                                <button type="button" class="btn secondary" id="btn-add-json-path"><i class="fas fa-plus"></i> 添加</button>
                             </div>
+                            <p style="font-size:0.75rem;color:var(--text-secondary);margin-top:6px">提示：输入路径后也可按 <span class="kbd">Enter</span> 添加。</p>
                         </div>
-                        
                         <div class="form-group">
-                            <label><i class="fas fa-plus-circle"></i> 添加自定义字段路径</label>
-                            <div class="form-row">
-                                <input type="text" id="new-field-path" placeholder="例如: profile.avatar">
-                                <button onclick="addCustomFieldPath()" style="padding: 0.75rem;"><i class="fas fa-plus"></i> 添加</button>
-                            </div>
+                            <label>我的常用路径（点击插入到上方列表）</label>
+                            <div class="custom-list" id="saved-custom-fields-json"></div>
                         </div>
-
-                        <div class="custom-fields-container">
-                            <h4>我的常用路径:</h4>
-                            <div id="saved-custom-fields-json"></div>
+                        <div class="btn-row">
+                            <button type="button" class="btn" id="btn-extract-json"><i class="fas fa-play"></i> 提取</button>
+                            <button type="button" class="btn secondary" id="btn-copy-json-results"><i class="fas fa-copy"></i> 复制提取结果</button>
+                            <button type="button" class="btn ghost" id="btn-clear-json"><i class="fas fa-broom"></i> 清空</button>
                         </div>
-
-                        <div class="button-group">
-                            <button onclick="extractJsonFields()"><i class="fas fa-play"></i> 提取</button>
-                            <button class="secondary" onclick="clearAllJson()"><i class="fas fa-broom"></i> 清空全部</button>
-                        </div>
-                        <div id="json-results" class="result-container"></div>
+                        <div id="json-results" class="result-box" aria-live="polite"></div>
                     </div>
                     <div class="card">
-                        <h3 class="card-title"><i class="fas fa-tasks"></i> 验证中心</h3>
-                        <p>在上方提取结果中，每个字段旁会出现输入框，输入期望值即可实时比对。</p>
-                        <div id="verification-results" class="result-container">
-                            <p>请先在左侧执行“提取”操作。</p>
+                        <h2 class="card-title"><i class="fas fa-circle-check"></i> 字段校验</h2>
+                        <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:12px;">在左侧提取结果中为每条记录输入期望值，将高亮匹配/不一致（与展示值做字符串比较）。</p>
+                        <div id="verification-results" class="result-box">
+                            <span style="color:var(--text-secondary)">提取后在此汇总校验状态。</span>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Time Tab -->
-            <section id="time-tab" class="tab-content">
-                <div class="card-grid">
+            <section id="time-tab" class="tab-content" role="tabpanel">
+                <div class="layout-grid">
                     <div class="card">
-                        <h3 class="card-title"><i class="fas fa-calendar-day"></i> 时间单位转换</h3>
+                        <h2 class="card-title"><i class="fas fa-stopwatch"></i> 时长换算</h2>
                         <div class="form-group">
-                            <label for="conversion-type"><i class="fas fa-sliders-h"></i> 选择转换类型</label>
+                            <label for="conversion-type">输入含义</label>
                             <select id="conversion-type" class="conversion-select">
-                                <option value="minutes-to-hours-minutes">分钟转时分秒</option>
-                                <option value="minutes-to-minutes-seconds">分钟转分秒</option>
-                                <option value="hours-to-minutes-seconds">小时转分秒</option>
-                                <option value="seconds-to-minutes-seconds">秒数转分秒</option>
-                                <option value="milliseconds-to-minutes-seconds">毫秒转分秒</option>
+                                <option value="minutes-to-hours-minutes">分钟 → 时分秒</option>
+                                <option value="minutes-to-minutes-seconds">分钟 → 分秒</option>
+                                <option value="hours-to-minutes-seconds">小时 → 分秒</option>
+                                <option value="seconds-to-minutes-seconds">秒 → 分秒</option>
+                                <option value="milliseconds-to-minutes-seconds">毫秒 → 分秒</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="output-format"><i class="fas fa-ruler-combined"></i> 输出格式</label>
+                            <label for="output-format">输出格式</label>
                             <select id="output-format" class="conversion-select">
                                 <option value="hms">时:分:秒</option>
                                 <option value="ms">分:秒</option>
@@ -718,619 +813,1172 @@ settings.theme</textarea>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="input-value"><i class="fas fa-stopwatch"></i> 输入数值</label>
-                            <div class="form-row">
-                                <input type="number" id="input-value" placeholder="请输入数字" min="0" step="1">
-                                <button class="clear-btn-input" title="清空" onclick="clearInputField('input-value')"><i class="fas fa-times"></i></button>
+                            <label for="input-value">数值</label>
+                            <div class="input-wrap">
+                                <input type="number" id="input-value" placeholder="非负数字" min="0" step="any">
+                                <button type="button" class="clear-in" data-clear="input-value" aria-label="清空"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
-                        <button onclick="convertTime()"><i class="fas fa-sync-alt"></i> 转换</button>
-                        <div id="time-conversion-result" class="result-container"></div>
+                        <div class="btn-row">
+                            <button type="button" class="btn" id="btn-convert-time"><i class="fas fa-rotate"></i> 转换</button>
+                            <button type="button" class="btn secondary" id="btn-copy-time"><i class="fas fa-copy"></i> 复制</button>
+                        </div>
+                        <div id="time-conversion-result" class="result-box"></div>
                     </div>
                     <div class="card">
-                        <h3 class="card-title"><i class="fas fa-hourglass-end"></i> 时间戳转换</h3>
+                        <h2 class="card-title"><i class="fas fa-hourglass-half"></i> Unix 时间戳</h2>
                         <div class="form-group">
-                            <label for="timestamp-input"><i class="fas fa-hourglass-half"></i> 输入时间戳 (秒或毫秒)</label>
-                            <div class="form-row">
-                                <input type="number" id="timestamp-input" placeholder="例如: 1700000000 或 1700000000000">
-                                <button class="clear-btn-input" title="清空" onclick="clearInputField('timestamp-input')"><i class="fas fa-times"></i></button>
+                            <label for="timestamp-input">秒或毫秒时间戳</label>
+                            <div class="input-wrap">
+                                <input type="number" id="timestamp-input" placeholder="如 1700000000 或 1700000000000" step="any">
+                                <button type="button" class="clear-in" data-clear="timestamp-input" aria-label="清空"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
-                        <button onclick="convertTimestamp()"><i class="fas fa-sync-alt"></i> 转换</button>
-                        <div id="timestamp-result" class="result-container"></div>
+                        <div class="btn-row">
+                            <button type="button" class="btn" id="btn-convert-ts"><i class="fas fa-rotate"></i> 转换</button>
+                            <button type="button" class="btn secondary" id="btn-now-ts"><i class="fas fa-bolt"></i> 填入当前时间</button>
+                            <button type="button" class="btn secondary" id="btn-copy-ts"><i class="fas fa-copy"></i> 复制</button>
+                        </div>
+                        <div id="timestamp-result" class="result-box"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="codec-tab" class="tab-content" role="tabpanel">
+                <div class="layout-grid">
+                    <div class="card">
+                        <h2 class="card-title"><i class="fas fa-key"></i> Base64</h2>
+                        <div class="form-group">
+                            <label for="b64-input">文本或 Base64</label>
+                            <div class="input-wrap">
+                                <textarea id="b64-input" placeholder="在此粘贴…" spellcheck="false"></textarea>
+                                <button type="button" class="clear-in" data-clear="b64-input" aria-label="清空"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="btn" id="btn-b64-enc"><i class="fas fa-lock"></i> 编码</button>
+                            <button type="button" class="btn secondary" id="btn-b64-dec"><i class="fas fa-unlock"></i> 解码</button>
+                            <button type="button" class="btn ghost" id="btn-b64-copy"><i class="fas fa-copy"></i> 复制输出</button>
+                        </div>
+                        <div id="b64-output" class="result-box" aria-live="polite"></div>
+                    </div>
+                    <div class="card">
+                        <h2 class="card-title"><i class="fas fa-link"></i> 查询串快速编码</h2>
+                        <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:12px;">将普通文本进行 encodeURIComponent / decodeURIComponent，便于拼接 URL。</p>
+                        <div class="form-group">
+                            <label for="enc-input">内容</label>
+                            <div class="input-wrap">
+                                <textarea id="enc-input" spellcheck="false"></textarea>
+                                <button type="button" class="clear-in" data-clear="enc-input" aria-label="清空"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="btn" id="btn-uri-enc"><i class="fas fa-arrow-right"></i> encode</button>
+                            <button type="button" class="btn secondary" id="btn-uri-dec"><i class="fas fa-arrow-left"></i> decode</button>
+                            <button type="button" class="btn ghost" id="btn-uri-copy"><i class="fas fa-copy"></i> 复制</button>
+                        </div>
+                        <div id="enc-output" class="result-box" aria-live="polite"></div>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Modal for Custom URL Params -->
-    <div id="custom-params-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>管理自定义URL参数</h3>
-                <span class="close-modal" onclick="closeModal('custom-params-modal')">&times;</span>
+    <div id="custom-params-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-params">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3 id="modal-title-params">管理自定义 URL 参数名</h3>
+                <button type="button" class="close-x" data-close-modal="custom-params-modal" aria-label="关闭">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="form-row">
-                    <input type="text" id="new-param-name" placeholder="参数名，如: custom_id">
-                    <button onclick="addCustomParam()"><i class="fas fa-plus"></i> 添加</button>
+            <div class="split-inline" style="margin-bottom:12px">
+                <div class="input-wrap">
+                    <input type="text" id="new-param-name" placeholder="参数名，如 custom_id" autocomplete="off">
                 </div>
-                <ul id="saved-custom-params-list"></ul>
+                <button type="button" class="btn" id="btn-modal-add-param"><i class="fas fa-plus"></i> 添加</button>
             </div>
-            <div class="modal-actions">
-                <button class="secondary" onclick="closeModal('custom-params-modal')">取消</button>
-                <button onclick="saveAndCloseParamsModal()">保存并关闭</button>
+            <ul id="saved-custom-params-list" style="list-style:none"></ul>
+            <div class="btn-row" style="margin-top:16px">
+                <button type="button" class="btn secondary" id="btn-modal-cancel">关闭</button>
+                <button type="button" class="btn" id="btn-modal-done">完成</button>
             </div>
         </div>
     </div>
 
+    <div id="toast" role="status"></div>
+
     <footer>
-        <p>智能数据解析工具 &copy; 2026</p>
+        暖风智能数据解析 · 本地运行，数据不上传 · © 2026
     </footer>
 
     <script>
-        // --- State Management ---
-        let customJsonFields = JSON.parse(localStorage.getItem('customJsonFields')) || [];
-        let customUrlParams = JSON.parse(localStorage.getItem('customUrlParams')) || [];
-        let selectedUrlParams = []; // For multi-select state
+const EMBED_MIXER_DOC="Mixer 接口文档（人工整理节选）\n\n【域名】\n内网：http://api.cupid.qiyi.smart/mixer\n内网测试：http://test-api.cupid.qiyi.smart/mixer\n外网：http(s)://t7z.cupid.iqiyi.com/mixer（非 TV 端）\n\n【通用】\n后端代理须透传客户端 User-Agent；POST；Content-Type: application/json。\n设备信息能取必传；mac / imei / Androidid / idfa / oaid 等不能全空。\n\n【部分请求参数摘录】（√=必填；主=仅主站；盟=仅联盟）\na：uaa user id，字符串，一搜百映公司内部 qyid，√\ntsp：timestamp，客户端发请求时间戳（毫秒）\nnu：new uaa user id（iOS 整改后固定传新 qyid，mixer 添加防冲突）\nn：cupid user id，广告频次控制，√\nd：ad player id，含平台与站点信息，√\nb：tvid，奇谱 ID / episode id，视频定向，框内广告必填\ne：app version，√\nr：sdk version，√\nrid：request id，MD5(video_event_id + timestamp毫秒)，√\no：video_event_id，32 位 0-9a-f UUID，√\nazt：adzone tagname，广告位标签，信息流等必填\ny：ad type，目标广告形式，√ 见附录 y\nnw：network，当前网络，√\ng：client ip，后端代理 mixer 时必填\ni：client type（iphone/ipad/gphone/gpad/pcw 等），除 pca 外必传，√\nk：channel id，页面广告频道定向\nl：model key，渠道 id，爱奇艺 app 必填\nm：user agent，机型 / 浏览器 UA，√\nv：is vip，1 为 vip，爱奇艺 app 必填\npo：need policy，前贴片等必填\nfa：future ad，前贴片必填\nz：ad mode，离线广告必填\nq：screen index，开机屏等\nea：need empty tracking，mixer 自填 √\nlm：limit，信息流/feed 必填\nsk：skip，feed/信息流必填\natt：accepted template type，创意模板 | 分隔\nps：play source，播放来源\n\n（以上为 PDF 前几页要点摘录，字段说明、附录取值请以本地《Mixer 接口文档.pdf》全文为准。）\n";
+const EMBED_DSP_DOC="奇效Dsp Tracking 接口文档\n奇效Dsp Tracking 接口文档\n1. Get接口输入\n1.1 输入参\nURL参数名\nproto字段\n参数意义\n解释及取值\n字符位数\n备注\n变更方案\nbase表（bi）\nBI使用方式\na\ntype\ntype\nint32，\n0：impression\n1：click\n3：trueview\n4：close\n10: start\n11: firstQuartile\n12: midpoint\n13: thirdQuartile\n14：complete\n15：deliverImpression\n20：downloadStart\n21：downloaded\n22：installed\n23：conversion\n24：viewableImpression\n25：repeatedImpression\n26：slidingImpression\n27：incentiveTask\n28：奇效内部使用 标记电商激励-快递签收\n29：atcrImpression\n30：网大网剧cpx和ocpx不计费tracking\n31： 网大网剧开播\n32：allClick\n36： incentiveTaskClick (激励点击任务) \n37：GOLD_COIN（金币任务，跟曝光一起发）\n50：winnotice\n1~2\n后端填写\ntracking_type\nb\nrequest_timestamp\ntimestamp_sec\nint32，请求广告时服务器的时间戳（1970年1月1日0点以来的秒数）\n10\n后端填写\nrequest_time\nc\nimpression_id\nimpression_id\nstring，32位小写hex字符串，曝光的唯一ID\n32\n后端填写\nimpression_id\nd\norder_item_id\norder_item_id\nint64，订单项id\n后端填写\norder_plan_id\ne\nuser_ip\nuser_ip\nstring，base64字符串，点分十进制用户IP，目前只有移动端、TV端app提供该字段，flash等网页端（含pc影音）不传，Tracking服务从HTTP Header里获取\n后端填写\nuser_ip\nf\nhttp_cookie_id\ncupid user id\nstring，移动端app取值open udid(若无，fallback 为device id)，flash等网页端（含pc影音）不传\n后端填写\ncupid_user_id\ng\nflash_cookie_id\nuaa user id\nstring，移动端app取值为open udid(若无，fallback 为device id)\n后端填写\nuaa_user_id\nh\nlogin_user_id\npassport id\n登录用户的passportId，也叫UID\n后端填写\nlog in_user_id\ni\nad_player_id\nad_player_id\nstring，播放器ID，详细见爱奇艺端命名规则\n后端填写\nad_player_id\nj\nchannel_id\nchannel_id\nint64，频道ID\n后端填写\nchannel_id\nk\nalbum_id\nalbum_id\nint64，专辑ID\n后端填写\nalbum_id\nl\nmobile_key\nmobile_key\nstring，32位小写hex字符串，App分发渠道key，只有移动端、TV端app有效\n32\n后端填写\nmobile_key\nm\nmobile_user_agent\nmobile_user_agent\nstring，url encode后的移动端设备UA，只对移动端app有效\n后端填写\nmobile_user_agent\nn\nepisode_id\nepisode_id\nint64，视频ID\n后端填写\nepisode_id\nup\npps_ugc_upload_id\nupload_id\nstring，上传者ID，用于广告日志计算PPS UGC分成，不涉及H5 和TV端，PC客户端、移动端最新版本已不再传递，PC网页端也会逐渐消亡\n前端填写\npps_ugc_upload_id\no\nad_type_id\nad_type_id\nint32，即cuepointType（详见 广告 Pingback 格式文档 ）\n后端填写\nad_type_id\np\nad_zone_id\nad_zone_id\nint32，广告位id\n后端填写\nad_zone_id\nq\ncreative_id\ncreative_id\nint32，素材创意ID\n后端填写\ncreative_id\nr\nvideo_event_id\nvideo_event_id\nstring，32位小写hex字符串，视频播放ID，唯一标识每个VV\n前端填写\nvideo_event_id\ns\nsecurity_code\nstring，32位小写hex字符串，安全校验码，tv=1时校验a、b、d、i、j、k、n、o、p、q、bt的md5校验值，tv=2时在tv=1的基础上加上req、c、f字段的md5校验值\n后端填写\nETL使用\nt\nclient_type\nstring，可能的类型：flash，ipad，iPhone，gphone，iphone_html5，ipad_html5，gphone_html5；详见 移动端Mobile字段之 客户端类型\n后端填写\nBI确认是否有用\n引擎没有记录改参数，可删除\n待删除\nv\nexchange_charging_price\nexchange_charging_price\nstring，已加密，RTB的收费价格，宏占位符：${SETTLEMENT}，引擎取 exchange_charging_price和charging_price的最大值计费\n72\n前端替换宏或返回 map 结构时前端 mixer 直接 覆盖（添加）\n引擎确认是否可去掉\n引擎确认不可删除\nexchange_charging_price\nw\nbidding_price\nbiding price\nstring，已加密，dsp的出价\n后端填写\nbidding_price\nkp\nfrequency_control_id\nfrequency control id\nstring，跨屏频次控制id\n后端填写\n引擎确认\n引擎确认不可删除\nfrequency_control_id\nx\ndsp_charging_price\ncharging price\nstring，已加密，dsp show填写的收费价格，dsp-tracking收到后会取exchange_charging_price和charging_price的最大值；\n后端填写\ndsp_charging_price\n暂无使用\ny\nnetwork\nnetwork\nint32，网络状态，取值范围见 Ad Mixer Api 文档 关于网络状态的定义\n后端填写\nnetwork_type\nz\nis_offline\nis_offline\nint32，是否离线视频，1表示离线，0表示在线\n后端填写\nis_offline\nrm\nranking_magic\nranking magic\nstring， 算法回传的分桶信息\n11\n后端填写\n待迁移\nBI确认使用，不删除\nBI确认是否可迁移，相关表：\nreport_qixiao_tracking_pctr_deviation_daily\nreport_qixiao_tracking_pctr_monitor\nranking_magic\nmt\nmatch_type\nmatch type\nstring，关键词匹配类型\n后端填写\n引擎确认不使用\n算法确认需要\nBI确认未使用\n待迁移\nmatch_type\n暂无使用\npr\npctr\npctr\nstring，base64型string，预估最大点击率\n24\n后端填写\n待删除\nBI确认未使用\npctr\nrp\nreal_pctr\nreal pctr\nstring，base64型string，预估点击率\n24\n后端填写\nBI确认使用\n报表依赖： report_qixiao_advertiser_user_event_count_info（离线）\nreport_qixiao_tracking_pctr_monitor （离线）\nreport_qixiao_tracking_pctr_deviation_daily （离线）\nreal_ pctr\nbt\nbilling_type\nbilling type\nint32，结算方式：1：CPD，2：CPM，3：CPC，4：CPDL，5：CPV\n后端填写\nbilling_type\net\ntimestamp_sec\nevent_timestamp\nint64，前端替换，发送tracking时间（前端替换的是毫秒时间戳），宏占位符：__TS__\n前端替换宏\nimpression_time\ncv\napp_version\napp version\nstring，app版本\n后端填写\napp_version\nsv\nsdk_version\nsdk version\nstring，SDK版本\n前端填写\nsdk_version\nsk\nvideo_tag_info\nspecific keywords\nstring，关键字ID集合\n前端填写\n待迁移\nBI确认未使用\n引擎确认不使用\n算法确认需要\nvpi\nv_passport_id\nv_passport_id\nstring，订阅页大VID\n后端填写\nv_passport_id\nabt\nabtest_id\nabtest id\nstring，ABTest的Id\n后端填写\n引擎确认不使用\nBI确认未使用\n待删除\nabtest_id\nabg\nabtest_group\nabtest group\nstring ，ABTest的Group\n后端填写\n引擎确认不使用\nBI确认未使用\n待删除\nabtest_group\nwf\nweighting_factor\nweighting_factor\ndouble，加权系数\n后端填写\n算法确认不使用\nBI确认未使用\n待删除\nweighting_factor\n暂无使用\ntt\ntargeting_types\ntargeting_types\nint32，定向位图\n后端填写\ntargeting_types\ntk\ntag_tuple\ntargeting keyword\nstring，匹配关键词\n后端填写\nvideo_tag_infos\nabm\nabtest_mark\nabtest mask\nstring，AB test使用的掩码，统计小流量对比数据使用\n后端填写\nabtest_mark\npt\nplay_type\ncpv play type\nint32，CPV播放类型，宏占位符：CUPID_VPT\n前端替换宏\nplay_type\npts\nplay_times\ncpv play times\nint32，CPV播放时长，宏占位符：CUPID_VPC\n前端替换宏\nplay_times\nca\nclick_area\nclick area\nstring，点击区域，宏占位符：CUPID_CLA\n前端替换宏\nclick_area\natct\nclick_attach_creative\nclick attach creative\nint32，点击附加创意按钮及表单提交按钮时替换为附加创意类型，宏占位符：CUPID_ATCT: 1-电话、2-咨询、3-表单、4-电商，如果前端没有替换 CUPID_ATCT，引擎会处理为0，表示点击的不是附加创意按钮\n前端替换宏\nclick_attach_creative\natcr\nattach_creative_type\nattach creative type\nint32，附加创意类型，0-非附加创意, 1-电话、2-咨询、3-表单、 4-电商\n后端填写\nattach_creative_type\nog\norder_group\norder item group id\nint64，广告系列ID\n11\n后端填写\n引擎确认可删除\n算法确认需要，不能删除\n删除，改为引擎后关联\n不用\npf\nplatform_id\nplatform id\nint32，平台信息\n2\n后端填写\n删除\n引擎确认可以根据ad_player_id计算，可删除\n算法确认需要，不能删除\n删除，算法直接用base表里BI写的\n不用\nlc\nlocation\nlocation\nint32，地域码\n后端填写\nlocation\npi\npctr_info\npctr info\nstring，序列化后url encode的字符串，pctr详细信息\n52\n后端填写\n删除\nBI已切换成acg_pctr_info：report_qixiao_advertiser_user_event_count_info（离线）\npctr _info\nri\nrelativity_info\nrelativity info\nstring，序列化后url encode的字符串，广告质量相关性详细信息\n32\n后端填写\n引擎确认不使用\n算法不使用\n待删除\nBI确认未使用\nrelativity_info\n暂无使用\nbz\nbiz_type_id\nbiz type\nint32，广告源等类型，详见adbe_common/ads/proto/enums.proto/BizType\n后端填写\nbiz_line\ndcs\ncreative_status\nDynamic creative status\nstring，宏占位符：CUPID_DCS\n前端替换宏或返回 map 结构时前端 mixer 直接 覆盖（添加）\ndynamic_creative_status\ndci\ncreative_info\nDynamic creative info\nstring，宏占位符：CUPID_DCI\n前端替换宏或返回 map 结构时前端 mixer 直接 覆盖（添加）\ndynamic_creative_info\nfc\nfrom_cache\nfrom cache\nstring，标识tracking是否来自缓存数据，对应宏CUPID_FC，1标识来自缓存，非缓存数据不做替换。\n前端替换宏\nfrom_cache\n暂无使用\nbts\nbusiness_data_ts\nbussiness data timestamp\nint32，业务数据生成时间戳\n后端填写\nlgt\nlongitude\nlongitude\n";
+const EMBED_CUPID_DOC="Cupid Tracking GET 接口\n一、工作方式\n注意：新增字段名称切勿以“b”结尾，因为已有字段“b”表示tracking触发时间，在老版本的tracking里，需要前端在发送tracking时查找“b=”，并做替换赋值\n三、TrackingLog 定义\nMapEntry\n字段\n类型\nkey\nstring\nvalue\nstring\nTrackingLog\n字段\n类型\n取值说明\ntraffic_data\nMapEntry\n1\nndad_data\nMapEntry\n2\nshow_data\nMapEntry\n3\nalgo_data\nMapEntry\n4\n后端返回时填充Tracking的必要字段，前端在触发Tracking时补全其他字段并发送。\n二、URI参数\n注意：新增字段名称切勿以“b”结尾，因为已有字段“b”表示tracking触发时间，在老版本的tracking里，需要前端在发送tracking时查找“b=”，并做替换赋值\n字段\n内容\n取值\n备注\n对应TrackingLog字段\na\ntype\n数字\n0：impression\n1：click\n2：push -- 退回\n3：trueview\n4：close\n5：RPUSH -- 推送量\n10: start\n11: firstQuartile\n12: midpoint\n13: thirdQuartile\n14：complete\n15： deliverImpression\n20：downloadStart\n21：downloaded\n22： installed\n23：conversion\n24：viewableImpression(可见曝光)\n25：repeatedImpression(重复曝光)\n26 ：slidingImpression(滑动曝光)\n27：incentiveTask（激励视频任务）\n28：INCENTIVE_EXPRESS_COMPLETE\n29： atcrImpression\n30：FILM_CONVERSION_OCPX_CPX\n31：FILM_START_PLAY\n32：INVALID_CLICK\n33: scan qrcode(tv端扫码曝光)\n34：EXTERN_CONVERSION\n35：LOSS_NOTICE\n36： INCENTIVETASK_CLICK(激励点击任务) \n50：WIN_NOTICE\n前端添加， 用其计算s 字段\n贴片、原生视频发送event tracking，其他广告不发送。\nb\ntimestamp\n数字，tracking 触发时间 ，与服务器时间校正后的时间戳（1970年1月1日0点以来的 秒数 ）\n前端添加， 与s 字段中的时间戳取值保持一致\nc\nimpression_id\n字符串，每次请求每个广告都有唯一的impression_id，32位 a-z0-9字符串\n后端添加\n前端用其计算s 字段\nd\norder_item_id\n数字，订单项id\n后端添加\n前端用其计算s 字段\ne\nuser_ip\n字符串，用户ip，只有移动端、TV端传递，其他端Tracking服务从HTTP Header里获取\nMixer 添加\nf\ncupid_user_id\n字符串，原来的http_cookie_id，用于广告频控，具体取值参照 广告userId文档\n后端添加\ng\nuaa_user_id\n字符串，原来的flash_cookie_id，用于一搜百映，具体取值 参照 广告userId文档\n后端添加\nif\nidfa\n字符串，取show请求参数idfa的值， 仅iOS传递，使用原值\n后端添加\nou\nopen_udid\n字符串，取show请求参数 ouid的值， 仅iOS传递，使用原值\n后端添加\nim\nimei\n字符串， 取show请求参数 imei 的值， 仅Android传递，使用原值\n后端添加\nai\nandroid_id\n字符串， 取show请求参数 aid 的值， 仅Android传递，使用原值\n后端添加\naa\nandroid_advertising_id\n字符串， 取show请求参数 aaid 的值， 仅Android传递，使用原值 （目前尚未传递）\n后端添加\nmc\nmac\n字符串， 取show请求参数 mac 的值， iOS和Android（包括TV）均传递，使用原值\n后端添加\niv\nis_vip\n数字，是否VIP，后端判断为VIP用户则取值1，否则取值0\n后端添加\nian\nis available for\nnon-housing pre roll\n字符串，该次请求流量是否可出商广贴片，“1”代表可以出商广贴片，“0”代表不可以出商广贴片\n后端添加\nuvpt\nuser vip type\n数值，标识用户的vip属性，0：非vip，1：黄金vip，4：网球vip；如果同时为黄金和网球，则为1+4=5；也就是如果用户是vip，vip类型按照bit位置标识;\n如果用户是vip，但是vip属性无法识别，不传递该字段i\n后端添加\nivm\nis_vip_movie\n数字，是否VIP影片，后端判断为VIP影片则取值1，否则取值0\n后端添加\nmvpt\nmovie vip type\n数值，标识视频的vip属性，0：非vip，1：黄金vip，4：网球vip；如果同时为黄金和网球，则为1+4=5；也就是如果视频是vip，vip类型按照bit位置标识\n如果视频是vip，但是vip属性无法识别，不传递该字段\n后端添加\nh\npassport_id\n数字，用户登录id\n后端添加\ni\nad_player_id\n字符串，广告播放器id，标识平台和站点\n后端添加\nj\nchannel_id\n数字，频道id\n后端添加\n若episode_id是带 6200000000000、 7200000000000等前缀的PPS存量视频，则由前端（PC网页端）添加\nk\nalbum_id\n数字，专辑id\n后端添加\n若episode_id是带 6200000000000、 7200000000000等前缀的PPS存量视频，则由前端（PC网页端）添加\nn\nepisode_id\n数字，视频id\n后端添加\n若是带6200000000000、7200000000000等前缀的PPS存量视频，则由前端（PC网页端）添加\nl\nmobile_key\n字符串，App分发渠道key， 32位a-z0-9字符串，只有移动端、TV端传递\nMixer 添加\nm\nmobile_user_agent\n字符串，设备机型，只有移动端、TV端传递\nMixer 添加\no\ncuepoint_type\n数字，cuepoint类型，0-页面、1-前贴、2-中贴、3-后贴、6-暂停、7-工具栏、8-视点、10-common overlay\n后端添加\nt\ncuepoint_id\n数字，策略 id\n后端添加\np\nad_zone_id\n数字，广告位id\n后端添加\nq\ncreative_id\n数字，素材创意id\n后端添加\nr\nvideo_event_id\n字符串，视频播放id，标识每个VV， 32位a-z0-9字符串\n前端添加， 用其计算s 字段\ns\nsecurity_code （ deprecated ）\n字符串，校验码\n版本1：md5(type + timestamp + impression_id + order_item_id + video_event_id + 'cupid')\n旧版本（线上）：md5('impression'|'click' + timestamp + impression_id + order_item_id + video_event_id + 'cupid')\n前端添加\ntst\ntracking security token\ntracking签名，由引擎端生成，生效以后，替代security code\n后端添加\nve\nmd5_version\n数字，校验码算法的版本号，目前的版本是1\n前端添加\nu\nrole_in_template\n数字，是否是主广告位，0-否、1-是\n后端添加\nv\ncharging_price\n字符串，价格信息\n后端添加\nw\ntime_slices\n字符串，时间片信息， 多个时间片用逗号分隔\n贴片广告\n- 占用单个时间片的情况：'2'\n- 占用多个时间片的情况：'2,3'\n非贴片广告\n- 取固定值：'1'\n后端添加\ncdi\ncard index\n字符串，位次信息，目前只有信息流广告使用，标识同一个session中处于 第几个位次\n后端添加\npo\nplay order\n字符串，play order信息，目前只有信息流广告使用，标识同一个请求中处于第几个位置\n后端添加\ny\nnetwork\n数字，网络状态 ，取值范围见 Ad Mixer Api 文档 关于网络状态的定义，只有移动端、TV端传递\nMixer 添加\nz\nis_offline\n数字，是否是离线视频，0-非离线；1-离线，只有移动端、TV端传递\nMixer 添加\nup\nupload_id\n数字，上传者id，用于PPS 存量UGC 视频分成，不涉及H5 和TV端\nPC客户端、移动端最新版本已不再传递，PC网页端也会逐渐消亡\n前端添加\n移动端由Mixer 添加\nkp\nfrequency_control_id\n字符串，跨屏频次控制id\n后端添加\ncv\nclient_version\n字符串，App 版本号\n前端添加\n移动端、TV端由Mixer 添加\nsv\nsdk_version\n字符串，SDK 版本号\n前端添加\n移动端、TV端由Mixer 添加\nri\nrequest_id\n字符串，请求id，每个show请求的唯一标识，32位a-z0-9字符串\n后端添加\nrt\nrequest_timestamp\n数字，前端请求广告时后端服务器的时间戳（1970年1月1日0点以来的 秒数 ）\n后端添加\nas\nall_time_slices\n字符串，所有时间片信息，包含真订单项和空订单项，订单项之间用';'分隔\n贴片广告\n- 所有广告都占用单个时间片的情况：'1;2;3;4;5'\n- 存在广告占用多个时间片的情况：'1;2,3;4;5'\n非贴片广告\n- 每个广告取固定值：'1'，若是多个广告则是：'1;1;1;1;1'\n后端添加\ndr\nvideo_duration\n数字，视频时长，获取不到则不返回该字段\n后端添加\nst\nstart_time\n数字，广告开始展现时视频播放进度条上的时间，单位秒\n页面：0\n前贴：0\n中贴：中贴打点时间（slot start time）\n角标：角标打点时间（slot start time）\n视链：视链打点时间（slot start time）\n暂停：视频当前播放进度\n工具栏：视频当前播放进度\n随视购：随视购打点时间（slot start time）\noverlay：overlay打点时间（slot start time）\n通用浮层： 打点时间（slot start time）\n通用浮层2： 打点时间（slot start time）\n前端添加\nrix\nrequest_index\n数字，请求序号，用于标识特定时间段内同个广告位请求广告的序号，取值默认从1开始，如用户一次视频暂停期间，前端会做暂停轮换，每次请求会+1并传递给后端，后端将参数值填充到 tracking（cupid tracking 和空订单项）对应的字段里，没有传或值为空则不填充，目前该参数可用于分析暂停轮换增加的库存和不同请求序号上广告的点击率等，未来后端可用于请求次序等更细粒度的投放控制\n后端添加\nta\ntest ab\n字符串， abtest的bucket标识， 后端添加，用于算法的效果分析；\n后端添加\nalg\nranking algorithm\nranking服务填充的算法标识符，ranking添加， 使用逗号分隔；\n分组标识符\n后端（ranking）添加\nht\nhit_tags\n字符串，该次投放命中的属性标签id，可能包含多个id，用逗号分隔，目前只有通用浮层使用\n后端添加\naci\nadjust_city_id\n数字，表明被矫正的城市id；-1代表着没有发生矫正\n后端添加\nfbt\npdb_fallback_type\n";
 
-        // --- Tab Switching ---
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                const targetTab = button.getAttribute('data-tab');
+    
+(function () {
+    'use strict';
 
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                document.querySelectorAll('.tab-button').forEach(btn => {
-                    btn.classList.remove('active');
-                });
+    const STORAGE = {
+        theme: 'selectedTheme',
+        wallpaper: 'customWallpaper',
+        urlParams: 'customUrlParams',
+        jsonFields: 'customJsonFields',
+        urlMulti: 'urlMultiSelection'
+    };
 
-                document.getElementById(targetTab).classList.add('active');
-                button.classList.add('active');
-            });
-        });
+    const themes = {
+        blue: { '--primary-color': '#4361ee', '--secondary-color': '#3730a3', '--background-color': '#f1f5f9', '--surface-color': '#ffffff', '--text-primary': '#0f172a', '--text-secondary': '#64748b', '--border-color': '#e2e8f0' },
+        green: { '--primary-color': '#16a34a', '--secondary-color': '#15803d', '--background-color': '#ecfdf5', '--surface-color': '#ffffff', '--text-primary': '#0f172a', '--text-secondary': '#64748b', '--border-color': '#bbf7d0' },
+        purple: { '--primary-color': '#9333ea', '--secondary-color': '#7e22ce', '--background-color': '#faf5ff', '--surface-color': '#ffffff', '--text-primary': '#0f172a', '--text-secondary': '#64748b', '--border-color': '#e9d5ff' },
+        red: { '--primary-color': '#dc2626', '--secondary-color': '#b91c1c', '--background-color': '#fef2f2', '--surface-color': '#ffffff', '--text-primary': '#0f172a', '--text-secondary': '#64748b', '--border-color': '#fecaca' },
+        orange: { '--primary-color': '#ea580c', '--secondary-color': '#c2410c', '--background-color': '#fff7ed', '--surface-color': '#ffffff', '--text-primary': '#0f172a', '--text-secondary': '#64748b', '--border-color': '#fed7aa' },
+        teal: { '--primary-color': '#0d9488', '--secondary-color': '#0f766e', '--background-color': '#f0fdfa', '--surface-color': '#ffffff', '--text-primary': '#0f172a', '--text-secondary': '#64748b', '--border-color': '#99f6e4' },
+        indigo: { '--primary-color': '#4f46e5', '--secondary-color': '#4338ca', '--background-color': '#eef2ff', '--surface-color': '#ffffff', '--text-primary': '#0f172a', '--text-secondary': '#64748b', '--border-color': '#c7d2fe' },
+        pink: { '--primary-color': '#db2777', '--secondary-color': '#be185d', '--background-color': '#fdf2f8', '--surface-color': '#ffffff', '--text-primary': '#0f172a', '--text-secondary': '#64748b', '--border-color': '#fbcfe8' },
+        yellow: { '--primary-color': '#ca8a04', '--secondary-color': '#a16207', '--background-color': '#fefce8', '--surface-color': '#ffffff', '--text-primary': '#0f172a', '--text-secondary': '#64748b', '--border-color': '#fde047' },
+        gray: { '--primary-color': '#4b5563', '--secondary-color': '#374151', '--background-color': '#f9fafb', '--surface-color': '#ffffff', '--text-primary': '#0f172a', '--text-secondary': '#64748b', '--border-color': '#e5e7eb' },
+        dark: { '--primary-color': '#818cf8', '--secondary-color': '#6366f1', '--background-color': '#0f172a', '--surface-color': '#1e293b', '--text-primary': '#f1f5f9', '--text-secondary': '#94a3b8', '--border-color': '#334155' }
+    };
 
-        // --- Theme & Background ---
-        const themes = {
-            blue: { '--primary-color': '#4361ee', '--secondary-color': '#3f37c9', '--background-color': '#f8fafc', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#e2e8f0' },
-            green: { '--primary-color': '#22c55e', '--secondary-color': '#16a34a', '--background-color': '#f0fdf4', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#bbf7d0' },
-            purple: { '--primary-color': '#a855f7', '--secondary-color': '#9333ea', '--background-color': '#faf5ff', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#e9d5ff' },
-            red: { '--primary-color': '#ef4444', '--secondary-color': '#dc2626', '--background-color': '#fef2f2', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fecaca' },
-            orange: { '--primary-color': '#f97316', '--secondary-color': '#ea580c', '--background-color': '#fff7ed', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fed7aa' },
-            teal: { '--primary-color': '#14b8a6', '--secondary-color': '#0d9488', '--background-color': '#f0fdfa', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#a7f3d0' },
-            indigo: { '--primary-color': '#6366f1', '--secondary-color': '#4f46e5', '--background-color': '#eef2ff', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#c7d2fe' },
-            pink: { '--primary-color': '#ec4899', '--secondary-color': '#db2777', '--background-color': '#fdf2f8', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fbcfe8' },
-            yellow: { '--primary-color': '#eab308', '--secondary-color': '#ca8a04', '--background-color': '#fefce8', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#fde047' },
-            gray: { '--primary-color': '#6b7280', '--secondary-color': '#4b5563', '--background-color': '#f9fafb', '--surface-color': '#ffffff', '--text-primary': '#1e293b', '--text-secondary': '#64748b', '--border-color': '#e5e7eb' },
-            dark: { '--primary-color': '#809fff', '--secondary-color': '#6d61d6', '--background-color': '#0f172a', '--surface-color': '#1e293b', '--text-primary': '#f1f5f9', '--text-secondary': '#94a3b8', '--border-color': '#334155' }
-        };
+    const WALLPAPER_PRESETS = [
+        { group: '', items: [
+            { value: '', label: '无背景（纯色）' },
+            { value: '__custom__', label: '自定义图片 URL…' }
+        ]},
+        { group: '风景', items: [
+            { value: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1920&auto=format&fit=crop', label: '森林晨雾' },
+            { value: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1920&auto=format&fit=crop', label: '山川湖泊' },
+            { value: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1920&auto=format&fit=crop', label: '自然风光' },
+            { value: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=1920&auto=format&fit=crop', label: '旷野黄昏' },
+            { value: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1920&auto=format&fit=crop', label: '雨雾山路' }
+        ]},
+        { group: '唯美人像 · 壁纸向', items: [
+            { value: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1920&auto=format&fit=crop', label: '人像 01' },
+            { value: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1920&auto=format&fit=crop', label: '人像 02' },
+            { value: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?q=80&w=1920&auto=format&fit=crop', label: '人像 03' },
+            { value: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1920&auto=format&fit=crop', label: '人像 04' },
+            { value: 'https://images.unsplash.com/photo-1501196354998-c01151cb59f1?q=80&w=1920&auto=format&fit=crop', label: '人像 05' },
+            { value: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1920&auto=format&fit=crop', label: '人像 06' },
+            { value: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1920&auto=format&fit=crop', label: '人像 07' },
+            { value: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=1920&auto=format&fit=crop', label: '人像 08' },
+            { value: 'https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?q=80&w=1920&auto=format&fit=crop', label: '人像 09' },
+            { value: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1920&auto=format&fit=crop', label: '人像 10' },
+            { value: 'https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?q=80&w=1920&auto=format&fit=crop', label: '人像 11' },
+            { value: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1920&auto=format&fit=crop', label: '人像 12' },
+            { value: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1920&auto=format&fit=crop', label: '人像 13' },
+            { value: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=1920&auto=format&fit=crop', label: '人像 14' },
+            { value: 'https://images.unsplash.com/photo-1509967419530-da38b470cbc6?q=80&w=1920&auto=format&fit=crop', label: '人像 15' },
+            { value: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1920&auto=format&fit=crop', label: '人像 16' },
+            { value: 'https://images.unsplash.com/photo-1508214751196-bcfd4fe60ef2?q=80&w=1920&auto=format&fit=crop', label: '人像 17' },
+            { value: 'https://images.unsplash.com/photo-1499557354967-3b2a8c3f24d0?q=80&w=1920&auto=format&fit=crop', label: '人像 18' },
+            { value: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1920&auto=format&fit=crop', label: '人像 19' },
+            { value: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=1920&auto=format&fit=crop', label: '人像 20' },
+            { value: 'https://images.unsplash.com/photo-1503104834685-7205e663f27f?q=80&w=1920&auto=format&fit=crop', label: '人像 21' },
+            { value: 'https://images.unsplash.com/photo-1485893086445-ed75865251e7?q=80&w=1920&auto=format&fit=crop', label: '人像 22' },
+            { value: 'https://images.unsplash.com/photo-1504439904031-93ded9f93e3e?q=80&w=1920&auto=format&fit=crop', label: '人像 23' },
+            { value: 'https://images.unsplash.com/photo-1526510747491-58f928ec870f?q=80&w=1920&auto=format&fit=crop', label: '人像 24' },
+            { value: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?q=80&w=1920&auto=format&fit=crop', label: '人像 25' },
+            { value: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1920&auto=format&fit=crop', label: '人像 26' },
+            { value: 'https://images.unsplash.com/photo-1504593811423-6dd137756598?q=80&w=1920&auto=format&fit=crop', label: '人像 27' },
+            { value: 'https://images.unsplash.com/photo-1525182008055-f88b95ff7980?q=80&w=1920&auto=format&fit=crop', label: '人像 28' }
+        ]}
+    ];
 
-        const root = document.documentElement;
-        const themeSelect = document.getElementById('theme-select');
-        const wallpaperSelect = document.getElementById('wallpaper-input');
+    const PRESET_URL_PARAMS = ['ee', 'user_ip', 'utm_source', 'utm_medium', 'utm_campaign', 'id', 'ref'];
+    const URL_MULTI_ALL = '';
 
-        function applyTheme(themeName) {
-            const themeVars = themes[themeName] || themes.blue;
-            Object.entries(themeVars).forEach(([prop, val]) => {
-                root.style.setProperty(prop, val);
-            });
-            localStorage.setItem('selectedTheme', themeName);
+    let modalSnapshotUrlParams = null;
+    let lastUrlResultText = '';
+    let lastCompareText = '';
+    let lastTimeText = '';
+    let lastTsText = '';
+    let lastB64Text = '';
+    let lastEncText = '';
+    let lastDecodeText = '';
+    /** @type {Record<string,string>} */
+    let lastUrlParamValues = {};
+
+    const root = document.documentElement;
+    const body = document.body;
+
+    function safeJsonParse(s, fallback) {
+        try { return JSON.parse(s); } catch { return fallback; }
+    }
+
+    function safeJsonParseArray(s, fallback = []) {
+        const v = safeJsonParse(s, null);
+        return Array.isArray(v) ? v : fallback;
+    }
+
+    let customUrlParams = safeJsonParseArray(localStorage.getItem(STORAGE.urlParams));
+    let customJsonFields = safeJsonParseArray(localStorage.getItem(STORAGE.jsonFields));
+    /** @type {string[]} */
+    let selectedUrlParams = safeJsonParseArray(localStorage.getItem(STORAGE.urlMulti));
+
+    function escapeHtml(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function escapeAttr(s) {
+        return escapeHtml(s).replace(/\n/g, '&#10;');
+    }
+
+    let toastTimer = null;
+    function toast(msg, ok = true) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.style.background = ok ? 'var(--text-primary)' : 'var(--danger-color)';
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+    }
+
+    async function copyText(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            toast('已复制到剪贴板');
+        } catch {
+            toast('复制失败，请手动选择复制', false);
         }
+    }
 
-        function setCustomBackground(imageUrl) {
-            if (imageUrl === 'custom') {
-                imageUrl = prompt("请输入图片URL:");
-                if (imageUrl) {
-                    document.body.style.backgroundImage = `url('${imageUrl}')`;
-                    localStorage.setItem('customWallpaper', imageUrl);
-                    wallpaperSelect.value = imageUrl;
-                } else {
-                    wallpaperSelect.value = '';
-                }
-            } else if(imageUrl){
-                 document.body.style.backgroundImage = `url('${imageUrl}')`;
-                 localStorage.setItem('customWallpaper', imageUrl);
+    function normalizeUrlInput(raw) {
+        const t = raw.trim();
+        if (!t) return t;
+        if (!/^https?:\/\//i.test(t)) return 'https://' + t;
+        return t;
+    }
+
+    function applyTheme(name) {
+        const t = themes[name] || themes.blue;
+        Object.entries(t).forEach(([k, v]) => root.style.setProperty(k, v));
+        localStorage.setItem(STORAGE.theme, name);
+        body.classList.toggle('dark-surface', name === 'dark');
+    }
+
+    function setBackgroundByValue(val) {
+        if (!val) {
+            body.style.backgroundImage = '';
+            body.classList.remove('has-bg');
+            localStorage.removeItem(STORAGE.wallpaper);
+            return;
+        }
+        body.style.backgroundImage = `url('${val.replace(/'/g, '%27')}')`;
+        body.classList.add('has-bg');
+        localStorage.setItem(STORAGE.wallpaper, val);
+    }
+
+    function buildWallpaperSelect() {
+        const sel = document.getElementById('wallpaper-input');
+        sel.innerHTML = '';
+        const saved = localStorage.getItem(STORAGE.wallpaper) || '';
+        const allKnown = new Set();
+        WALLPAPER_PRESETS.forEach(group => {
+            if (!group.group) {
+                group.items.forEach(w => {
+                    allKnown.add(w.value);
+                    const o = document.createElement('option');
+                    o.value = w.value;
+                    o.textContent = w.label;
+                    sel.appendChild(o);
+                });
             } else {
-                 document.body.style.backgroundImage = '';
-                 localStorage.removeItem('customWallpaper');
+                const og = document.createElement('optgroup');
+                og.label = group.group;
+                group.items.forEach(w => {
+                    allKnown.add(w.value);
+                    const o = document.createElement('option');
+                    o.value = w.value;
+                    o.textContent = w.label;
+                    og.appendChild(o);
+                });
+                sel.appendChild(og);
             }
+        });
+        const known = allKnown.has(saved);
+        if (saved && !known && saved !== '__custom__') {
+            const o = document.createElement('option');
+            o.value = saved;
+            o.textContent = '已保存的自定义背景';
+            sel.appendChild(o);
         }
+        const hasVal = saved && Array.from(sel.options).some(o => o.value === saved);
+        sel.value = hasVal ? saved : '';
+    }
 
-        themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
-        window.onload = function() {
-            const savedTheme = localStorage.getItem('selectedTheme') || 'blue';
-            const savedWallpaper = localStorage.getItem('customWallpaper') || '';
-            applyTheme(savedTheme);
-            themeSelect.value = savedTheme;
-            if(savedWallpaper) {
-                document.body.style.backgroundImage = `url('${savedWallpaper}')`;
-                wallpaperSelect.value = savedWallpaper;
+    function initThemeSelect() {
+        const sel = document.getElementById('theme-select');
+        const labels = { blue: '蓝色', green: '绿色', purple: '紫色', red: '红色', orange: '橙色', teal: '青色', indigo: '靛蓝', pink: '粉色', yellow: '黄色', gray: '灰色', dark: '深色' };
+        sel.innerHTML = '';
+        Object.keys(labels).forEach(k => {
+            const o = document.createElement('option');
+            o.value = k;
+            o.textContent = labels[k];
+            sel.appendChild(o);
+        });
+        const saved = localStorage.getItem(STORAGE.theme) || 'blue';
+        sel.value = themes[saved] ? saved : 'blue';
+        applyTheme(sel.value);
+        sel.addEventListener('change', () => applyTheme(sel.value));
+    }
+
+    document.getElementById('wallpaper-input').addEventListener('change', (e) => {
+        const v = e.target.value;
+        if (v === '__custom__') {
+            const u = prompt('请输入图片 URL：');
+            if (u && u.trim()) {
+                const url = u.trim();
+                const sel = e.target;
+                let opt = Array.from(sel.options).find(o => o.value === url);
+                if (!opt) {
+                    opt = document.createElement('option');
+                    opt.value = url;
+                    opt.textContent = '自定义: ' + (url.length > 40 ? url.slice(0, 40) + '…' : url);
+                    sel.appendChild(opt);
+                }
+                sel.value = url;
+                setBackgroundByValue(url);
+            } else {
+                e.target.value = '';
+                setBackgroundByValue('');
             }
-            // Initialize custom params in dropdown
-            updateUrlParamDropdownOptions();
-            // Initialize saved fields
-            renderSavedJsonFields();
+        } else {
+            setBackgroundByValue(v);
+        }
+    });
+
+    function getEmbeddedDoc(which) {
+        if (typeof EMBED_MIXER_DOC === 'undefined') {
+            return '（文档正文未定义：页面脚本可能不完整，请重新保存或刷新）\n';
+        }
+        if (which === 'mixer') return EMBED_MIXER_DOC;
+        if (which === 'dsp') return EMBED_DSP_DOC;
+        if (which === 'cupid') return EMBED_CUPID_DOC;
+        return '';
+    }
+
+    function paramInDocSnippet(doc, key) {
+        if (!key) return false;
+        if (key.length >= 3) return doc.includes(key);
+        try {
+            return new RegExp('(^|[\\s\\n])' + key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[\\s\\n:：，,])').test(doc);
+        } catch { return doc.includes(key); }
+    }
+
+    function refreshDocPanel() {
+        const sel = document.getElementById('doc-ref-select');
+        const body = document.getElementById('doc-ref-body');
+        if (!sel || !body) return;
+        body.textContent = getEmbeddedDoc(sel.value);
+    }
+
+    // Tabs
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-tab');
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.toggle('active', s.id === id));
+            document.querySelectorAll('.tab-button').forEach(b => {
+                const on = b === btn;
+                b.classList.toggle('active', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            if (id === 'docs-tab') refreshDocPanel();
+        });
+    });
+
+    document.getElementById('doc-ref-select').addEventListener('change', refreshDocPanel);
+    document.getElementById('btn-doc-copy').addEventListener('click', () => {
+        const t = document.getElementById('doc-ref-body').textContent;
+        if (!t.trim()) { toast('无内容', false); return; }
+        copyText(t);
+    });
+    document.getElementById('btn-doc-compare-url').addEventListener('click', () => {
+        const raw = document.getElementById('url-input').value.trim();
+        const doc = document.getElementById('doc-ref-body').textContent;
+        if (!raw) { toast('请先在「URL」标签输入链接', false); return; }
+        if (!doc.trim()) { toast('文档内容为空', false); return; }
+        let keys = [];
+        try {
+            const u = new URL(normalizeUrlInput(raw));
+            keys = [...new URLSearchParams(u.search).keys()];
+        } catch (e) {
+            toast('URL 无效', false);
+            return;
+        }
+        const rows = keys.map(k => ({ k, hit: paramInDocSnippet(doc, k) }));
+        const hitn = rows.filter(r => r.hit).length;
+        const box = document.getElementById('doc-compare-result');
+        box.innerHTML = '<div style="font-weight:600;margin-bottom:8px">当前 URL 共 ' + keys.length + ' 个参数名 · 在当前节选文档中命中约 ' + hitn + ' 个（单字母参数用规则匹配，仅供参考）</div>' +
+            rows.map(r => '<div class="result-row ' + (r.hit ? 'match' : 'warn') + '"><strong>' + escapeHtml(r.k) + '</strong> · ' + (r.hit ? '可能在文档中出现' : '节选中未明显出现') + '</div>').join('');
+        toast('检索完成');
+    });
+
+    // Clear buttons
+    document.querySelectorAll('[data-clear]').forEach(b => {
+        b.addEventListener('click', () => {
+            const id = b.getAttribute('data-clear');
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+    });
+
+    // URL multi-select (delegation + dynamic options)
+    const urlPanel = document.getElementById('url-multi-panel');
+    const urlTrigger = document.getElementById('url-multi-trigger');
+    const urlMultiLabel = document.getElementById('url-multi-label');
+    const urlTags = document.getElementById('url-selected-tags');
+
+    function persistUrlSelection() {
+        localStorage.setItem(STORAGE.urlMulti, JSON.stringify(selectedUrlParams));
+    }
+
+    function renderUrlMultiPanel() {
+        urlPanel.innerHTML = '';
+        const mk = (value, text, extraClass) => {
+            const d = document.createElement('div');
+            d.className = 'multi-opt' + (extraClass ? ' ' + extraClass : '');
+            d.dataset.value = value;
+            d.textContent = text;
+            if (selectedUrlParams.includes(value)) d.classList.add('selected');
+            urlPanel.appendChild(d);
         };
+        mk(URL_MULTI_ALL, '全部参数', '');
+        PRESET_URL_PARAMS.forEach(p => mk(p, p, ''));
+        customUrlParams.forEach(p => mk(p, p, ''));
+        mk('__manage__', '管理自定义参数…', 'manage');
+    }
 
-
-        // --- Utility Functions ---
-        function clearInputField(fieldId) {
-            document.getElementById(fieldId).value = '';
+    function updateUrlMultiLabel() {
+        if (selectedUrlParams.includes(URL_MULTI_ALL)) {
+            urlMultiLabel.textContent = '已选：全部参数';
+        } else if (selectedUrlParams.length === 0) {
+            urlMultiLabel.textContent = '未选择：解析时将显示全部参数';
+        } else if (selectedUrlParams.length === 1) {
+            urlMultiLabel.textContent = '已选：' + selectedUrlParams[0];
+        } else {
+            urlMultiLabel.textContent = '已选 ' + selectedUrlParams.length + ' 个参数';
         }
+    }
 
-        function clearResults(containerId) {
-            document.getElementById(containerId).innerHTML = '';
-        }
-
-        // --- Multi-Select Dropdown for URL Params ---
-        function toggleMultiSelectDropdown() {
-            const dropdown = document.getElementById('multi-select-dropdown');
-            const isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
-            dropdown.style.display = isHidden ? 'block' : 'none';
-        }
-
-        function updateSelectedTagsDisplay() {
-            const container = document.getElementById('selected-tags-container');
-            container.innerHTML = '';
-            selectedUrlParams.forEach(param => {
-                if(param === '') return; // Skip 'all'
-                const tag = document.createElement('div');
-                tag.className = 'selected-tag';
-                tag.innerHTML = `${param} <button onclick="removeSelectedParam('${param}')"><i class="fas fa-times"></i></button>`;
-                container.appendChild(tag);
+    function renderUrlTags() {
+        urlTags.innerHTML = '';
+        selectedUrlParams.forEach(p => {
+            if (p === URL_MULTI_ALL) return;
+            const tag = document.createElement('div');
+            tag.className = 'tag';
+            tag.textContent = p + ' ';
+            const rm = document.createElement('button');
+            rm.type = 'button';
+            rm.innerHTML = '<i class="fas fa-times"></i>';
+            rm.addEventListener('click', () => {
+                selectedUrlParams = selectedUrlParams.filter(x => x !== p);
+                syncUrlMultiSelectedClasses();
+                renderUrlTags();
+                updateUrlMultiLabel();
+                persistUrlSelection();
             });
-            document.getElementById('multi-select-trigger-text').textContent = 
-                selectedUrlParams.length === 0 ? '请选择参数...' : 
-                selectedUrlParams.length === 1 ? selectedUrlParams[0] : 
-                `${selectedUrlParams.length} 项已选`;
-        }
-
-        function removeSelectedParam(paramToRemove) {
-            selectedUrlParams = selectedUrlParams.filter(p => p !== paramToRemove);
-            updateSelectedTagsDisplay();
-            const allOptions = document.querySelectorAll('#multi-select-dropdown .multi-select-option');
-            allOptions.forEach(opt => {
-                if (opt.dataset.value === paramToRemove) {
-                    opt.classList.remove('selected');
-                }
-            });
-        }
-
-        document.querySelectorAll('#multi-select-dropdown .multi-select-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const value = option.dataset.value;
-                
-                if (value === 'custom_params_manage') {
-                    openCustomParamsModal();
-                    return;
-                }
-
-                if (value === '') { // 'All' option
-                    if (selectedUrlParams.includes('')) {
-                        selectedUrlParams = [];
-                    } else {
-                        selectedUrlParams = [''];
-                    }
-                } else {
-                    if (selectedUrlParams.includes(value)) {
-                        selectedUrlParams = selectedUrlParams.filter(v => v !== value);
-                    } else {
-                        selectedUrlParams = selectedUrlParams.filter(v => v !== ''); // Remove 'all' if specific one is selected
-                        selectedUrlParams.push(value);
-                    }
-                }
-                
-                // Update UI
-                document.querySelectorAll('#multi-select-dropdown .multi-select-option').forEach(opt => {
-                    if (opt.dataset.value === value && value !== 'custom_params_manage') {
-                        opt.classList.toggle('selected', selectedUrlParams.includes(value));
-                    } else if (opt.dataset.value !== 'custom_params_manage'){
-                        opt.classList.toggle('selected', selectedUrlParams.includes(opt.dataset.value));
-                    }
-                });
-
-                updateSelectedTagsDisplay();
-            });
+            tag.appendChild(rm);
+            urlTags.appendChild(tag);
         });
+        updateUrlMultiLabel();
+    }
 
-        document.addEventListener('click', (e) => {
-            const dropdown = document.getElementById('multi-select-dropdown');
-            const trigger = document.querySelector('.multi-select-trigger');
-            if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.style.display = 'none';
-            }
+    function syncUrlMultiSelectedClasses() {
+        urlPanel.querySelectorAll('.multi-opt').forEach(el => {
+            const v = el.dataset.value;
+            el.classList.toggle('selected', v && selectedUrlParams.includes(v));
         });
+    }
 
-        function updateUrlParamDropdownOptions() {
-            const dropdown = document.getElementById('multi-select-dropdown');
-            const existingCustomItems = dropdown.querySelectorAll('.custom-param-option');
-            existingCustomItems.forEach(el => el.remove());
-
-            customUrlParams.forEach(param => {
-                const opt = document.createElement('div');
-                opt.className = 'multi-select-option custom-param-option';
-                opt.dataset.value = param;
-                opt.textContent = param;
-                dropdown.insertBefore(opt, document.querySelector('.multi-select-option[data-value="custom_params_manage"]'));
-            });
+    urlPanel.addEventListener('click', (e) => {
+        const opt = e.target.closest('.multi-opt');
+        if (!opt) return;
+        const value = opt.dataset.value;
+        if (value === '__manage__') {
+            openParamsModal();
+            urlPanel.classList.remove('open');
+            urlTrigger.setAttribute('aria-expanded', 'false');
+            return;
         }
+        if (value === URL_MULTI_ALL) {
+            if (selectedUrlParams.includes(URL_MULTI_ALL)) {
+                selectedUrlParams = [];
+            } else {
+                selectedUrlParams = [URL_MULTI_ALL];
+            }
+        } else {
+            selectedUrlParams = selectedUrlParams.filter(x => x !== URL_MULTI_ALL);
+            if (selectedUrlParams.includes(value)) {
+                selectedUrlParams = selectedUrlParams.filter(x => x !== value);
+            } else {
+                selectedUrlParams.push(value);
+            }
+        }
+        syncUrlMultiSelectedClasses();
+        renderUrlTags();
+        persistUrlSelection();
+    });
 
+    function toggleUrlPanel() {
+        const open = urlPanel.classList.toggle('open');
+        urlTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
 
-        // --- URL Functions ---
-        function parseUrl() {
-            const urlStr = document.getElementById('url-input').value;
-            if (!urlStr) return;
+    urlTrigger.addEventListener('click', (e) => { e.stopPropagation(); toggleUrlPanel(); });
+    urlTrigger.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleUrlPanel(); }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('url-multi-root').contains(e.target)) {
+            urlPanel.classList.remove('open');
+            urlTrigger.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    function tryDecodeTrackingPayload(raw) {
+        const steps = [];
+        let s = String(raw).trim();
+        for (let round = 0; round < 8; round++) {
+            let changed = false;
             try {
-                const url = new URL(urlStr);
-                const searchParams = new URLSearchParams(url.search);
-                const resultsDiv = document.getElementById('parsed-results');
-
-                let html = '<h4>解析结果:</h4>';
-
-                if (selectedUrlParams.includes('')) {
-                    // If 'all' is selected, show all
-                    for (const [key, value] of searchParams) {
-                        html += `<div class="result-item"><strong>${key}:</strong> ${value}</div>`;
-                    }
-                } else if (selectedUrlParams.length > 0) {
-                    // Show only selected params
-                    selectedUrlParams.forEach(param => {
-                        const value = searchParams.get(param);
-                        html += `<div class="result-item"><strong>${param}:</strong> ${value || 'N/A'}</div>`;
-                    });
-                } else {
-                    // If nothing is selected, show all as fallback
-                     for (const [key, value] of searchParams) {
-                        html += `<div class="result-item"><strong>${key}:</strong> ${value}</div>`;
-                    }
-                }
-                resultsDiv.innerHTML = html;
-            } catch (e) {
-                alert('URL格式错误: ' + e.message);
-            }
+                const t = decodeURIComponent(s.replace(/\+/g, '%20'));
+                if (t !== s) { s = t; steps.push('URL解码'); changed = true; }
+            } catch { break; }
+            if (!changed) break;
         }
-
-        function compareUrls() {
-            const userUrlStr = document.getElementById('url-input').value;
-            const correctUrlStr = document.getElementById('correct-url-input').value;
-            if (!userUrlStr || !correctUrlStr) {
-                alert('请输入待比较和参考的URL！');
-                return;
-            }
+        const compact = s.replace(/\s/g, '');
+        if (/^[A-Za-z0-9+/=_-]+$/.test(compact) && compact.length >= 8) {
+            let b64 = compact.replace(/-/g, '+').replace(/_/g, '/');
+            while (b64.length % 4) b64 += '=';
             try {
-                const userUrl = new URL(userUrlStr);
-                const correctUrl = new URL(correctUrlStr);
-                const userParams = new Map(new URLSearchParams(userUrl.search));
-                const correctParams = new Map(new URLSearchParams(correctUrl.search));
-                const allKeys = new Set([...userParams.keys(), ...correctParams.keys()]);
-                const resultsDiv = document.getElementById('comparison-results');
-
-                let html = '<h4>比对结果:</h4>';
-                for (const key of allKeys) {
-                    const userVal = userParams.get(key);
-                    const correctVal = correctParams.get(key);
-                    let cls = 'result-item';
-                    let status = '';
-                    if (userVal === undefined) {
-                        cls += ' error'; status = ' (缺失)';
-                    } else if (correctVal === undefined) {
-                        cls += ' error'; status = ' (多余)';
-                    } else if (userVal !== correctVal) {
-                        cls += ' mismatch'; status = ` (应为: ${correctVal})`;
-                    } else {
-                        cls += ' match'; status = ' (匹配)';
-                    }
-                    html += `<div class="${cls}"><strong>${key}:</strong> ${userVal || 'N/A'} <small>${status}</small></div>`;
-                }
-                resultsDiv.innerHTML = html;
-            } catch (e) {
-                alert('URL格式错误: ' + e.message);
-            }
+                const bin = atob(b64);
+                s = decodeURIComponent(escape(bin));
+                steps.push('Base64→UTF-8');
+            } catch { /* 非 Base64 */ }
         }
+        try {
+            const j = JSON.parse(s);
+            s = JSON.stringify(j, null, 2);
+            steps.push('JSON 美化');
+        } catch { /* 非 JSON */ }
+        if (!steps.length) steps.push('（未识别编码链，原样展示）');
+        return { text: s, steps };
+    }
 
-        function clearAllUrl() {
-            clearInputField('url-input');
-            clearInputField('correct-url-input');
-            selectedUrlParams = [];
-            updateSelectedTagsDisplay();
-            document.querySelectorAll('#multi-select-dropdown .multi-select-option').forEach(opt => opt.classList.remove('selected'));
-            clearResults('parsed-results');
-            clearResults('comparison-results');
+    function runDecodePipeline() {
+        let raw = document.getElementById('decode-input').value.trim();
+        const kv = raw.match(/^([a-zA-Z0-9_]+)=(.+)$/);
+        if (kv) {
+            raw = kv[2].trim();
+            document.getElementById('decode-input').value = raw;
         }
+        const out = document.getElementById('decode-output');
+        const stepsEl = document.getElementById('decode-steps');
+        if (!raw) { toast('请先粘贴密文', false); return; }
+        const r = tryDecodeTrackingPayload(raw);
+        lastDecodeText = r.text;
+        out.innerHTML = '<pre style="white-space:pre-wrap;margin:0;font:inherit;max-height:42vh;overflow:auto">' + escapeHtml(r.text) + '</pre>';
+        stepsEl.textContent = '处理链：' + r.steps.join(' → ');
+        toast('解密完成');
+    }
 
-
-        // --- Custom URL Params Modal ---
-        function openCustomParamsModal() {
-            document.getElementById('custom-params-modal').style.display = 'flex';
-            renderSavedParamsList();
+    document.getElementById('parsed-results').addEventListener('click', (e) => {
+        const dec = e.target.closest('.decrypt-row');
+        if (dec) {
+            const key = dec.getAttribute('data-param');
+            const v = lastUrlParamValues[key] ?? '';
+            document.getElementById('decode-input').value = v;
+            runDecodePipeline();
+            document.getElementById('decode-output').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            return;
         }
+        const cp = e.target.closest('.copy-one');
+        if (cp) copyText(cp.getAttribute('data-copy') || '');
+    });
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
+    function parseUrlAction() {
+        const raw = document.getElementById('url-input').value;
+        if (!raw.trim()) { toast('请先输入 URL', false); return; }
+        const urlStr = normalizeUrlInput(raw);
+        try {
+            const url = new URL(urlStr);
+            const sp = new URLSearchParams(url.search);
+            const results = document.getElementById('parsed-results');
+            const lines = [];
+            let html = '';
+            lastUrlParamValues = {};
 
-        function renderSavedParamsList() {
-            const container = document.getElementById('saved-custom-params-list');
-            container.innerHTML = '';
-            customUrlParams.forEach(param => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${param}</span>
-                    <button class="secondary" onclick="removeCustomParam('${param}')"><i class="fas fa-trash"></i></button>
-                `;
-                container.appendChild(li);
-            });
-        }
+            const appendRow = (k, v) => {
+                lastUrlParamValues[k] = v;
+                const line = k + '=' + v;
+                lines.push(line);
+                html += '<div class="result-row" data-param="' + escapeAttr(k) + '"><div class="row-head"><strong>' + escapeHtml(k) + '</strong><span style="display:flex;gap:6px;flex-shrink:0">';
+                html += '<button type="button" class="btn secondary sm copy-one" data-copy="' + escapeAttr(v) + '"><i class="fas fa-copy"></i></button>';
+                html += '<button type="button" class="btn sm decrypt-row" data-param="' + escapeAttr(k) + '"><i class="fas fa-unlock-keyhole"></i> 解密</button>';
+                html += '</span></div><div>' + escapeHtml(v) + '</div></div>';
+            };
 
-        function addCustomParam() {
-            const input = document.getElementById('new-param-name');
-            const name = input.value.trim();
-            if (name && !customUrlParams.includes(name)) {
-                customUrlParams.push(name);
-                renderSavedParamsList();
-                updateUrlParamDropdownOptions(); // Add to dropdown
-                input.value = '';
-            }
-        }
-
-        function removeCustomParam(name) {
-            customUrlParams = customUrlParams.filter(p => p !== name);
-            renderSavedParamsList();
-            updateUrlParamDropdownOptions(); // Remove from dropdown
-            // Also remove from selected if present
-            removeSelectedParam(name);
-        }
-
-        function saveAndCloseParamsModal() {
-            localStorage.setItem('customUrlParams', JSON.stringify(customUrlParams));
-            closeModal('custom-params-modal');
-        }
-
-
-        // --- JSON Functions ---
-        function jsonStringifySafe(obj) {
-            return JSON.stringify(obj, (key, val) => typeof val === 'function' ? val.toString() : val);
-        }
-
-        function extractJsonFields() {
-            const jsonText = document.getElementById('json-input').value;
-            const pathsText = document.getElementById('field-paths').value;
-            if (!jsonText || !pathsText) {
-                alert('请输入JSON和字段路径！');
-                return;
-            }
-            try {
-                let jsonData;
-                try {
-                    jsonData = JSON.parse(jsonText);
-                } catch {
-                    // Attempt to fix common non-standard JSON issues
-                    let fixedJsonText = jsonText
-                        .replace(/(\w+):/g, '"$1":') // Wrap unquoted keys in quotes
-                        .replace(/'/g, '"'); // Replace single quotes with double quotes
-                    jsonData = JSON.parse(fixedJsonText);
-                }
-
-                const paths = pathsText.split('\n').map(p => p.trim()).filter(Boolean);
-                const resultsDiv = document.getElementById('json-results');
-                let html = '<h4>提取结果:</h4>';
-                
-                paths.forEach(path => {
-                    // Determine if it's a full path (contains dots) or a simple field name
-                    const isFullPath = path.includes('.');
-                    
-                    if (isFullPath) {
-                        // Exact Path Match
-                        try {
-                            const value = getNestedValue(jsonData, path);
-                            const valueStr = value !== undefined ? jsonStringifySafe(value) : 'undefined';
-                            html += `<div class="result-item" data-field="${path}">
-                                        <strong>${path}:</strong> ${valueStr}
-                                        <input type="text" class="verification-input" placeholder="输入期望值..." data-field="${path}" data-actual="${valueStr}">
-                                     </div>`;
-                        } catch (e) {
-                            html += `<div class="result-item error"><strong>${path}:</strong> 错误 - ${e.message}</div>`;
-                        }
-                    } else {
-                        // Fuzzy Field Name Search
-                        const matches = findValuesByFieldName(jsonData, path);
-                        if (matches.length > 0) {
-                            matches.forEach((match, idx) => {
-                                const uniqueKey = `${path}_${idx}`;
-                                const valueStr = jsonStringifySafe(match.value);
-                                html += `<div class="result-item" data-field="${uniqueKey}">
-                                            <strong>[模糊匹配] ${match.path}:</strong> ${valueStr}
-                                            <input type="text" class="verification-input" placeholder="输入期望值..." data-field="${uniqueKey}" data-actual="${valueStr}">
-                                         </div>`;
-                            });
-                        } else {
-                            html += `<div class="result-item error"><strong>[未找到] ${path}:</strong> 在JSON中未找到该字段名</div>`;
-                        }
-                    }
+            if (selectedUrlParams.includes(URL_MULTI_ALL) || selectedUrlParams.length === 0) {
+                for (const [k, v] of sp) appendRow(k, v);
+            } else {
+                selectedUrlParams.forEach(param => {
+                    const v = sp.get(param);
+                    appendRow(param, v === null ? '' : v);
                 });
-                resultsDiv.innerHTML = html;
-                attachVerificationListeners();
-            } catch (e) {
-                alert('JSON格式错误或自动修复失败: ' + e.message);
             }
-        }
 
-        function getNestedValue(obj, path) {
-            const keys = path.replace(/\[(\w+)\]/g, '.$1').split('.');
-            let result = obj;
+            if (!html) html = '<div class="result-row warn">无查询参数</div>';
+            results.innerHTML = '<div style="font-weight:700;margin-bottom:8px">查询参数</div>' + html;
+            lastUrlResultText = lines.join('\n');
+            toast('解析完成');
+        } catch (err) {
+            toast('URL 无效：' + err.message, false);
+        }
+    }
+
+    function urlComponentsAction() {
+        const raw = document.getElementById('url-input').value;
+        if (!raw.trim()) { toast('请先输入 URL', false); return; }
+        try {
+            const u = new URL(normalizeUrlInput(raw));
+            const box = document.getElementById('parsed-results');
+            const rows = [
+                ['协议', u.protocol],
+                ['主机', u.host],
+                ['路径', u.pathname],
+                ['哈希', u.hash || '(无)'],
+                ['原始查询', u.search || '(无)']
+            ];
+            box.innerHTML = '<div style="font-weight:700;margin-bottom:8px">结构概要</div>' +
+                rows.map(([a, b]) => '<div class="result-row"><strong>' + escapeHtml(a) + '</strong><div>' + escapeHtml(b) + '</div></div>').join('');
+            lastUrlResultText = rows.map(([a, b]) => a + ': ' + b).join('\n');
+            toast('已生成结构概要');
+        } catch (e) {
+            toast('URL 无效：' + e.message, false);
+        }
+    }
+
+    function compareUrlsAction() {
+        const a = document.getElementById('url-input').value.trim();
+        const b = document.getElementById('correct-url-input').value.trim();
+        if (!a || !b) { toast('请填写待比较与参考 URL', false); return; }
+        try {
+            const ua = new URL(normalizeUrlInput(a));
+            const ub = new URL(normalizeUrlInput(b));
+            const pa = new URLSearchParams(ua.search);
+            const pb = new URLSearchParams(ub.search);
+            const keys = new Set([...pa.keys(), ...pb.keys()]);
+            const lines = [];
+            let html = '<div style="font-weight:700;margin-bottom:8px">比对结果</div>';
             for (const key of keys) {
-                if (result === undefined || result === null) break;
-                result = result[key];
+                const va = pa.get(key);
+                const vb = pb.get(key);
+                let cls = 'result-row';
+                let status = '';
+                if (va === null) { cls += ' err'; status = '左侧缺失'; }
+                else if (vb === null) { cls += ' err'; status = '右侧缺失'; }
+                else if (va !== vb) { cls += ' warn'; status = '不一致'; }
+                else { cls += ' match'; status = '一致'; }
+                const line = key + ': 左=' + (va ?? '') + ' 右=' + (vb ?? '') + ' [' + status + ']';
+                lines.push(line);
+                html += '<div class="' + cls + '"><strong>' + escapeHtml(key) + '</strong> <small>(' + escapeHtml(status) + ')</small><div>左: ' + escapeHtml(va ?? '') + '</div><div>右: ' + escapeHtml(vb ?? '') + '</div></div>';
             }
-            return result;
+            document.getElementById('comparison-results').innerHTML = html || '<div class="result-row">无查询参数可比对</div>';
+            lastCompareText = lines.join('\n');
+            toast('比对完成');
+        } catch (e) {
+            toast('URL 无效：' + e.message, false);
         }
+    }
 
-        function findValuesByFieldName(obj, fieldName, path = '', results = []) {
-            if (obj !== null && typeof obj === 'object') {
-                Object.keys(obj).forEach(key => {
-                    const newPath = path ? `${path}.${key}` : key;
-                    if (key === fieldName) {
-                        results.push({ path: newPath, value: obj[key] });
-                    }
-                    findValuesByFieldName(obj[key], fieldName, newPath, results);
+    function clearUrlTab() {
+        ['url-input', 'correct-url-input', 'decode-input'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        selectedUrlParams = [];
+        persistUrlSelection();
+        renderUrlMultiPanel();
+        renderUrlTags();
+        document.getElementById('parsed-results').innerHTML = '';
+        document.getElementById('comparison-results').innerHTML = '';
+        document.getElementById('decode-output').innerHTML = '';
+        const st = document.getElementById('decode-steps');
+        if (st) st.textContent = '';
+        lastUrlParamValues = {};
+        lastUrlResultText = '';
+        lastCompareText = '';
+        lastDecodeText = '';
+    }
+
+    document.getElementById('btn-parse-url').addEventListener('click', parseUrlAction);
+    document.getElementById('btn-url-components').addEventListener('click', urlComponentsAction);
+    document.getElementById('btn-compare-url').addEventListener('click', compareUrlsAction);
+    document.getElementById('btn-clear-url').addEventListener('click', clearUrlTab);
+    document.getElementById('btn-decode-run').addEventListener('click', runDecodePipeline);
+    document.getElementById('btn-decode-from-url').addEventListener('click', () => {
+        const v = lastUrlParamValues['ee'];
+        if (!v) { toast('请先在上方解析 URL，且链接中含 ee 参数', false); return; }
+        document.getElementById('decode-input').value = v;
+        runDecodePipeline();
+    });
+    document.getElementById('btn-decode-copy').addEventListener('click', () => {
+        if (!lastDecodeText) { toast('请先解密', false); return; }
+        copyText(lastDecodeText);
+    });
+    document.getElementById('btn-copy-url-results').addEventListener('click', () => {
+        if (!lastUrlResultText) { toast('暂无可复制内容', false); return; }
+        copyText(lastUrlResultText);
+    });
+    document.getElementById('btn-copy-compare').addEventListener('click', () => {
+        if (!lastCompareText) { toast('请先执行比对', false); return; }
+        copyText(lastCompareText);
+    });
+
+    // Modal URL params
+    const modal = document.getElementById('custom-params-modal');
+    function openParamsModal() {
+        modalSnapshotUrlParams = JSON.stringify(customUrlParams);
+        modal.classList.add('show');
+        renderParamsList();
+    }
+    function closeParamsModal(restore) {
+        if (restore && modalSnapshotUrlParams !== null) {
+            customUrlParams = safeJsonParse(modalSnapshotUrlParams, []);
+            renderUrlMultiPanel();
+            syncUrlMultiSelectedClasses();
+            renderUrlTags();
+        }
+        modal.classList.remove('show');
+        modalSnapshotUrlParams = null;
+    }
+    function renderParamsList() {
+        const ul = document.getElementById('saved-custom-params-list');
+        ul.innerHTML = '';
+        customUrlParams.forEach(param => {
+            const li = document.createElement('li');
+            li.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);gap:8px';
+            const span = document.createElement('span');
+            span.textContent = param;
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'btn secondary sm';
+            del.innerHTML = '<i class="fas fa-trash"></i>';
+            del.addEventListener('click', () => {
+                customUrlParams = customUrlParams.filter(p => p !== param);
+                selectedUrlParams = selectedUrlParams.filter(p => p !== param);
+                persistUrlSelection();
+                renderParamsList();
+                renderUrlMultiPanel();
+                renderUrlTags();
+            });
+            li.appendChild(span);
+            li.appendChild(del);
+            ul.appendChild(li);
+        });
+    }
+    document.getElementById('btn-modal-add-param').addEventListener('click', () => {
+        const input = document.getElementById('new-param-name');
+        const name = input.value.trim();
+        if (!name) return;
+        if (customUrlParams.includes(name)) { toast('已存在同名参数', false); return; }
+        customUrlParams.push(name);
+        input.value = '';
+        renderParamsList();
+        renderUrlMultiPanel();
+        syncUrlMultiSelectedClasses();
+        toast('已添加（点「完成」后写入本地）');
+    });
+    document.getElementById('btn-modal-cancel').addEventListener('click', () => closeParamsModal(true));
+    document.getElementById('btn-modal-done').addEventListener('click', () => {
+        localStorage.setItem(STORAGE.urlParams, JSON.stringify(customUrlParams));
+        renderUrlMultiPanel();
+        syncUrlMultiSelectedClasses();
+        closeParamsModal(false);
+        toast('已保存');
+    });
+    document.querySelectorAll('[data-close-modal]').forEach(b => {
+        b.addEventListener('click', () => closeParamsModal(true));
+    });
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeParamsModal(true);
+    });
+
+    // JSON
+    function getNestedValue(obj, path) {
+        const normalized = path.replace(/\[(\d+)\]/g, '.$1').replace(/\[([^\]]+)\]/g, '.$1');
+        const keys = normalized.split('.').filter(Boolean);
+        let cur = obj;
+        for (const key of keys) {
+            if (cur === null || cur === undefined) return undefined;
+            cur = cur[key];
+        }
+        return cur;
+    }
+
+    function findValuesByFieldName(obj, fieldName, base = '', out = []) {
+        if (obj !== null && typeof obj === 'object') {
+            if (Array.isArray(obj)) {
+                obj.forEach((item, i) => findValuesByFieldName(item, fieldName, base + '[' + i + ']', out));
+            } else {
+                Object.keys(obj).forEach(k => {
+                    const np = base ? base + '.' + k : k;
+                    if (k === fieldName) out.push({ path: np, value: obj[k] });
+                    findValuesByFieldName(obj[k], fieldName, np, out);
                 });
             }
-            return results;
         }
+        return out;
+    }
 
+    function jsonStringifySafe(val) {
+        if (val === undefined) return 'undefined';
+        return JSON.stringify(val, (k, v) => (typeof v === 'bigint' ? v.toString() : v));
+    }
 
-        function attachVerificationListeners() {
-            document.querySelectorAll('#json-results .verification-input').forEach(input => {
-                input.removeEventListener('input', handleVerification);
-                input.addEventListener('input', handleVerification);
-            });
+    function tryParseJsonLoose(text) {
+        try { return JSON.parse(text); } catch {
+            let s = text.replace(/^\uFEFF/, '').trim();
+            s = s.replace(/([{,]\s*)([A-Za-z_$][\w$]*)\s*:/g, '$1"$2":');
+            s = s.replace(/'/g, '"');
+            return JSON.parse(s);
         }
+    }
 
-        function handleVerification(e) {
-            const input = e.target;
-            const field = input.dataset.field;
-            const actual = input.dataset.actual;
-            const expected = input.value;
-            
-            const item = input.closest('.result-item');
-            item.classList.remove('match', 'mismatch');
-            
-            if (expected === '') return;
-            
-            if (actual == expected) {
-                item.classList.add('match');
+    function extractJsonAction() {
+        const jsonText = document.getElementById('json-input').value.trim();
+        const pathsText = document.getElementById('field-paths').value;
+        if (!jsonText || !pathsText.trim()) { toast('请填写 JSON 与路径', false); return; }
+        let data;
+        try {
+            data = tryParseJsonLoose(jsonText);
+        } catch (e) {
+            toast('JSON 解析失败：' + e.message, false);
+            return;
+        }
+        const paths = pathsText.split(/\r?\n/).map(p => p.trim()).filter(Boolean);
+        const box = document.getElementById('json-results');
+        let html = '';
+        const verifyRows = [];
+
+        paths.forEach(path => {
+            const isFull = path.includes('.') || path.includes('[');
+            if (isFull) {
+                try {
+                    const val = getNestedValue(data, path);
+                    const str = val === undefined ? 'undefined' : jsonStringifySafe(val);
+                    const id = 'f_' + Math.random().toString(36).slice(2);
+                    verifyRows.push({ id, label: path, actual: str });
+                    html += '<div class="result-row" data-verify-id="' + escapeAttr(id) + '"><div class="row-head"><strong>' + escapeHtml(path) + '</strong><button type="button" class="btn secondary sm" data-copy-json="' + escapeAttr(str) + '"><i class="fas fa-copy"></i></button></div><div>' + escapeHtml(str) + '</div><input class="verify-input" type="text" placeholder="期望值（可选）" data-actual="' + escapeAttr(str) + '" aria-label="校验 ' + escapeAttr(path) + '"></div>';
+                } catch (e) {
+                    html += '<div class="result-row err"><strong>' + escapeHtml(path) + '</strong> 提取失败：' + escapeHtml(e.message) + '</div>';
+                }
             } else {
-                item.classList.add('mismatch');
+                const matches = findValuesByFieldName(data, path);
+                if (!matches.length) {
+                    html += '<div class="result-row err"><strong>' + escapeHtml(path) + '</strong> 未找到同名属性</div>';
+                } else {
+                    matches.forEach((m, idx) => {
+                        const label = '[模糊] ' + m.path;
+                        const str = jsonStringifySafe(m.value);
+                        const id = 'f_' + Math.random().toString(36).slice(2);
+                        verifyRows.push({ id, label, actual: str });
+                        html += '<div class="result-row" data-verify-id="' + escapeAttr(id) + '"><div class="row-head"><strong>' + escapeHtml(label) + '</strong><button type="button" class="btn secondary sm" data-copy-json="' + escapeAttr(str) + '"><i class="fas fa-copy"></i></button></div><div>' + escapeHtml(str) + '</div><input class="verify-input" type="text" placeholder="期望值" data-actual="' + escapeAttr(str) + '" aria-label="校验"></div>';
+                    });
+                }
             }
-        }
+        });
 
-        function addCustomFieldPath() {
-            const input = document.getElementById('new-field-path');
-            const path = input.value.trim();
-            if (path && !customJsonFields.includes(path)) {
-                customJsonFields.push(path);
-                localStorage.setItem('customJsonFields', JSON.stringify(customJsonFields));
-                renderSavedJsonFields();
-                input.value = '';
-            }
-        }
+        box.innerHTML = html || '<div class="result-row">无输出</div>';
+        box.querySelectorAll('[data-copy-json]').forEach(btn => {
+            btn.addEventListener('click', () => copyText(btn.getAttribute('data-copy-json') || ''));
+        });
+        attachJsonVerification();
+        document.getElementById('verification-results').innerHTML = '<span style="color:var(--text-secondary)">在左侧输入期望值后将更新统计。</span>';
+        toast('提取完成');
+    }
 
-        function renderSavedJsonFields() {
-            const container = document.getElementById('saved-custom-fields-json');
-            container.innerHTML = '';
-            customJsonFields.forEach(field => {
-                const div = document.createElement('div');
-                div.className = 'custom-field-item';
-                div.innerHTML = `
-                    <span onclick="insertFieldPathIntoTextarea('${field}')">${field}</span>
-                    <button class="secondary" onclick="removeCustomJsonField('${field}')"><i class="fas fa-trash"></i></button>
-                `;
-                container.appendChild(div);
+    function attachJsonVerification() {
+        const box = document.getElementById('json-results');
+        const summary = document.getElementById('verification-results');
+
+        function refresh() {
+            const inputs = box.querySelectorAll('.verify-input');
+            let filled = 0, ok = 0, bad = 0;
+            inputs.forEach(inp => {
+                const exp = inp.value.trim();
+                if (!exp) return;
+                filled++;
+                const act = inp.getAttribute('data-actual') || '';
+                const row = inp.closest('.result-row');
+                row.classList.remove('match', 'warn');
+                if (act === exp) { ok++; row.classList.add('match'); }
+                else { bad++; row.classList.add('warn'); }
             });
+            summary.innerHTML = '<div class="result-row">已填写 ' + filled + ' 项 · 匹配 ' + ok + ' · 不一致 ' + bad + '</div>';
         }
 
-        function insertFieldPathIntoTextarea(path) {
-            const textarea = document.getElementById('field-paths');
-            const current = textarea.value;
-            if (!current.split('\n').includes(path)) {
-                textarea.value = current ? current + '\n' + path : path;
-            }
+        box.querySelectorAll('.verify-input').forEach(inp => {
+            inp.addEventListener('input', refresh);
+        });
+    }
+
+    function renderSavedJsonFields() {
+        const c = document.getElementById('saved-custom-fields-json');
+        c.innerHTML = '';
+        customJsonFields.forEach(field => {
+            const div = document.createElement('div');
+            div.className = 'item';
+            const span = document.createElement('span');
+            span.textContent = field;
+            span.addEventListener('click', () => {
+                const ta = document.getElementById('field-paths');
+                const lines = ta.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+                if (!lines.includes(field)) ta.value = ta.value.replace(/\s*$/, '') + (ta.value.trim() ? '\n' : '') + field;
+            });
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'btn secondary sm';
+            del.innerHTML = '<i class="fas fa-trash"></i>';
+            del.addEventListener('click', () => {
+                customJsonFields = customJsonFields.filter(f => f !== field);
+                localStorage.setItem(STORAGE.jsonFields, JSON.stringify(customJsonFields));
+                renderSavedJsonFields();
+            });
+            div.appendChild(span);
+            div.appendChild(del);
+            c.appendChild(div);
+        });
+    }
+
+    function addJsonPathFromInput() {
+        try {
+            const input = document.getElementById('new-field-path');
+            if (!input) { toast('页面元素异常', false); return; }
+            const p = (input.value || '').trim();
+            if (!p) { toast('请输入路径', false); return; }
+            if (customJsonFields.includes(p)) { toast('路径已存在', false); return; }
+            customJsonFields.push(p);
+            localStorage.setItem(STORAGE.jsonFields, JSON.stringify(customJsonFields));
+            renderSavedJsonFields();
+            input.value = '';
+            input.focus();
+            toast('已保存路径');
+        } catch (err) {
+            toast('添加失败：' + err.message, false);
         }
+    }
 
-        function removeCustomJsonField(path) {
-            customJsonFields = customJsonFields.filter(f => f !== path);
-            localStorage.setItem('customJsonFields', JSON.stringify(customJsonFields));
-            renderSavedJsonFields(); // Refresh the list
+    document.getElementById('btn-add-json-path').addEventListener('click', addJsonPathFromInput);
+    document.getElementById('new-field-path').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addJsonPathFromInput();
         }
+    });
 
-        function clearAllJson() {
-            clearInputField('json-input');
-            clearInputField('field-paths');
-            clearResults('json-results');
-            document.getElementById('verification-results').innerHTML = '<p>请先在左侧执行“提取”操作。</p>';
+    document.getElementById('btn-format-json').addEventListener('click', () => {
+        const ta = document.getElementById('json-input');
+        try {
+            const o = tryParseJsonLoose(ta.value.trim());
+            ta.value = JSON.stringify(o, null, 2);
+            toast('已格式化');
+        } catch (e) { toast('无法格式化：' + e.message, false); }
+    });
+
+    document.getElementById('btn-minify-json').addEventListener('click', () => {
+        const ta = document.getElementById('json-input');
+        try {
+            const o = tryParseJsonLoose(ta.value.trim());
+            ta.value = JSON.stringify(o);
+            toast('已压缩');
+        } catch (e) { toast('无法压缩：' + e.message, false); }
+    });
+
+    document.getElementById('btn-extract-json').addEventListener('click', extractJsonAction);
+    document.getElementById('btn-clear-json').addEventListener('click', () => {
+        ['json-input', 'field-paths'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+        document.getElementById('json-results').innerHTML = '';
+        document.getElementById('verification-results').innerHTML = '<span style="color:var(--text-secondary)">提取后在此汇总校验状态。</span>';
+    });
+    document.getElementById('btn-copy-json-results').addEventListener('click', () => {
+        const t = document.getElementById('json-results').innerText.trim();
+        if (!t) { toast('暂无提取结果', false); return; }
+        copyText(t);
+    });
+
+    // Time
+    function convertTimeAction() {
+        const type = document.getElementById('conversion-type').value;
+        const fmt = document.getElementById('output-format').value;
+        const n = parseFloat(document.getElementById('input-value').value);
+        const out = document.getElementById('time-conversion-result');
+        if (Number.isNaN(n) || n < 0) {
+            out.innerHTML = '<div class="result-row err">请输入有效的非负数</div>';
+            toast('输入无效', false);
+            return;
         }
-
-
-        // --- Time Functions ---
-        function convertTime() {
-            const conversionType = document.getElementById('conversion-type').value;
-            const outputFormat = document.getElementById('output-format').value;
-            const inputValue = parseFloat(document.getElementById('input-value').value);
-
-            if (isNaN(inputValue) || inputValue < 0) {
-                document.getElementById('time-conversion-result').innerHTML = '<div class="result-item error">请输入有效的非负数字！</div>';
+        let totalSec = 0;
+        let totalMs = 0;
+        switch (type) {
+            case 'minutes-to-hours-minutes':
+            case 'minutes-to-minutes-seconds':
+                totalSec = n * 60;
+                break;
+            case 'hours-to-minutes-seconds':
+                totalSec = n * 3600;
+                break;
+            case 'seconds-to-minutes-seconds':
+                totalSec = n;
+                break;
+            case 'milliseconds-to-minutes-seconds':
+                totalMs = n;
+                totalSec = n / 1000;
+                break;
+            default:
+                out.innerHTML = '<div class="result-row err">未知类型</div>';
                 return;
-            }
-
-            let totalSeconds = 0;
-            let totalMilliseconds = 0;
-
-            switch (conversionType) {
-                case 'minutes-to-hours-minutes':
-                    totalSeconds = inputValue * 60;
-                    break;
-                case 'minutes-to-minutes-seconds':
-                    totalSeconds = inputValue * 60;
-                    break;
-                case 'hours-to-minutes-seconds':
-                    totalSeconds = inputValue * 60 * 60;
-                    break;
-                case 'seconds-to-minutes-seconds':
-                    totalSeconds = inputValue;
-                    break;
-                case 'milliseconds-to-minutes-seconds':
-                    totalMilliseconds = inputValue;
-                    totalSeconds = inputValue / 1000;
-                    break;
-                default:
-                    document.getElementById('time-conversion-result').innerHTML = '<div class="result-item error">未知转换类型</div>';
-                    return;
-            }
-
-            let resultText = '';
-            const absTotalSeconds = Math.abs(totalSeconds);
-            const absTotalMilliseconds = Math.abs(totalMilliseconds);
-            
-            const sign = totalSeconds < 0 ? '-' : '';
-
-            switch (outputFormat) {
-                case 'hms':
-                    const hours = Math.floor(absTotalSeconds / 3600);
-                    const minutes = Math.floor((absTotalSeconds % 3600) / 60);
-                    const seconds = Math.floor(absTotalSeconds % 60);
-                    resultText = `${sign}${hours}小时${minutes}分${seconds}秒`;
-                    break;
-                case 'ms':
-                    const mins = Math.floor(absTotalSeconds / 60);
-                    const secs = Math.floor(absTotalSeconds % 60);
-                    resultText = `${sign}${mins}分${secs}秒`;
-                    break;
-                case 'total_seconds':
-                    resultText = `${sign}${Math.round(absTotalSeconds)} 秒`;
-                    break;
-                case 'total_milliseconds':
-                    resultText = `${sign}${Math.round(absTotalMilliseconds || absTotalSeconds * 1000)} 毫秒`;
-                    break;
-                default:
-                    resultText = '未知输出格式';
-            }
-
-            document.getElementById('time-conversion-result').innerHTML = `<div class="result-item match"><strong>转换结果:</strong> ${resultText}</div>`;
         }
+        const abs = Math.abs(totalSec);
+        const sign = totalSec < 0 ? '-' : '';
+        let text = '';
+        if (fmt === 'hms') {
+            const h = Math.floor(abs / 3600);
+            const m = Math.floor((abs % 3600) / 60);
+            const s = Math.floor(abs % 60);
+            text = sign + h + '小时' + m + '分' + s + '秒';
+        } else if (fmt === 'ms') {
+            const m = Math.floor(abs / 60);
+            const s = Math.floor(abs % 60);
+            text = sign + m + '分' + s + '秒';
+        } else if (fmt === 'total_seconds') {
+            text = sign + Math.round(abs) + ' 秒';
+        } else if (fmt === 'total_milliseconds') {
+            const ms = totalMs ? Math.abs(totalMs) : Math.round(abs * 1000);
+            text = sign + ms + ' 毫秒';
+        } else text = '未知输出格式';
+        out.innerHTML = '<div class="result-row match"><strong>结果</strong><div>' + escapeHtml(text) + '</div></div>';
+        lastTimeText = text;
+        toast('换算完成');
+    }
 
-        function convertTimestamp() {
-            const ts = parseFloat(document.getElementById('timestamp-input').value);
-            if (isNaN(ts)) {
-                document.getElementById('timestamp-result').innerHTML = '<div class="result-item error">请输入有效的时间戳！</div>';
-                return;
-            }
-            const d = ts > 1e12 ? new Date(ts) : new Date(ts * 1000);
-            document.getElementById('timestamp-result').innerHTML = `<div class="result-item"><strong>转换结果:</strong> ${d.toLocaleString('zh-CN')}</div>`;
+    function convertTsAction() {
+        const v = parseFloat(document.getElementById('timestamp-input').value);
+        const out = document.getElementById('timestamp-result');
+        if (Number.isNaN(v)) {
+            out.innerHTML = '<div class="result-row err">请输入数字时间戳</div>';
+            toast('无效时间戳', false);
+            return;
         }
+        const ms = v > 1e12 ? v : v * 1000;
+        const d = new Date(ms);
+        const iso = d.toISOString();
+        const local = d.toLocaleString('zh-CN', { hour12: false });
+        const lines = ['本地：' + local, 'ISO：' + iso, '毫秒：' + Math.round(ms)];
+        out.innerHTML = lines.map(l => '<div class="result-row"><div>' + escapeHtml(l) + '</div></div>').join('');
+        lastTsText = lines.join('\n');
+        toast('转换完成');
+    }
 
+    document.getElementById('btn-convert-time').addEventListener('click', convertTimeAction);
+    document.getElementById('btn-convert-ts').addEventListener('click', convertTsAction);
+    document.getElementById('btn-now-ts').addEventListener('click', () => {
+        document.getElementById('timestamp-input').value = String(Date.now());
+        convertTsAction();
+    });
+    document.getElementById('btn-copy-time').addEventListener('click', () => {
+        if (!lastTimeText) { toast('请先转换', false); return; }
+        copyText(lastTimeText);
+    });
+    document.getElementById('btn-copy-ts').addEventListener('click', () => {
+        if (!lastTsText) { toast('请先转换', false); return; }
+        copyText(lastTsText);
+    });
+
+    // Codec tab
+    document.getElementById('btn-b64-enc').addEventListener('click', () => {
+        const t = document.getElementById('b64-input').value;
+        try {
+            const b = btoa(unescape(encodeURIComponent(t)));
+            document.getElementById('b64-output').innerHTML = '<div class="result-row match"><div>' + escapeHtml(b) + '</div></div>';
+            lastB64Text = b;
+            toast('Base64 编码完成');
+        } catch (e) {
+            document.getElementById('b64-output').innerHTML = '<div class="result-row err">' + escapeHtml(e.message) + '</div>';
+            toast('编码失败', false);
+        }
+    });
+    document.getElementById('btn-b64-dec').addEventListener('click', () => {
+        const t = document.getElementById('b64-input').value.trim().replace(/\s/g, '');
+        try {
+            const s = decodeURIComponent(escape(atob(t)));
+            document.getElementById('b64-output').innerHTML = '<div class="result-row"><pre style="white-space:pre-wrap;margin:0;font:inherit">' + escapeHtml(s) + '</pre></div>';
+            lastB64Text = s;
+            toast('解码完成');
+        } catch (e) {
+            document.getElementById('b64-output').innerHTML = '<div class="result-row err">解码失败，请确认输入为标准 Base64</div>';
+            toast('解码失败', false);
+        }
+    });
+    document.getElementById('btn-b64-copy').addEventListener('click', () => {
+        if (!lastB64Text) { toast('暂无输出', false); return; }
+        copyText(lastB64Text);
+    });
+
+    document.getElementById('btn-uri-enc').addEventListener('click', () => {
+        const t = document.getElementById('enc-input').value;
+        const r = encodeURIComponent(t);
+        document.getElementById('enc-output').innerHTML = '<div class="result-row match"><div>' + escapeHtml(r) + '</div></div>';
+        lastEncText = r;
+        toast('已 encode');
+    });
+    document.getElementById('btn-uri-dec').addEventListener('click', () => {
+        const t = document.getElementById('enc-input').value;
+        try {
+            const r = decodeURIComponent(t);
+            document.getElementById('enc-output').innerHTML = '<div class="result-row"><div>' + escapeHtml(r) + '</div></div>';
+            lastEncText = r;
+            toast('已 decode');
+        } catch (e) {
+            document.getElementById('enc-output').innerHTML = '<div class="result-row err">decode 失败</div>';
+            toast('decode 失败', false);
+        }
+    });
+    document.getElementById('btn-uri-copy').addEventListener('click', () => {
+        if (!lastEncText) { toast('暂无输出', false); return; }
+        copyText(lastEncText);
+    });
+
+    // Global shortcuts
+    document.addEventListener('keydown', (e) => {
+        const meta = e.ctrlKey || e.metaKey;
+        if (!meta || e.key !== 'Enter') return;
+        const active = document.querySelector('.tab-content.active')?.id;
+        if (active === 'url-tab') parseUrlAction();
+        else if (active === 'json-tab') extractJsonAction();
+    });
+
+    // Init
+    window.addEventListener('load', () => {
+        initThemeSelect();
+        buildWallpaperSelect();
+        const savedWp = localStorage.getItem(STORAGE.wallpaper) || '';
+        if (savedWp) setBackgroundByValue(savedWp);
+
+        selectedUrlParams = selectedUrlParams.filter(x => typeof x === 'string');
+        persistUrlSelection();
+
+        renderUrlMultiPanel();
+        renderUrlTags();
+        syncUrlMultiSelectedClasses();
+
+        renderSavedJsonFields();
+    });
+})();
     </script>
 </body>
 </html>
