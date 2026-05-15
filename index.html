@@ -205,6 +205,7 @@
             border: 1px solid var(--border-color);
             box-shadow: var(--shadow-sm);
             padding: 20px;
+            position: relative;
         }
 
         .card-title {
@@ -374,6 +375,7 @@
 
         .multi-select {
             position: relative;
+            z-index: 100;
         }
 
         .multi-trigger {
@@ -403,17 +405,53 @@
             z-index: 80;
         }
 
-        .multi-panel.open { display: block; }
+        .multi-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .multi-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .multi-panel::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        .multi-panel::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
 
-        .multi-opt {
+        .multi-panel.open { display: block; }
+        .multi-panel.show { display: block; }
+
+        .multi-opt, .multi-option {
             padding: 8px 12px;
             cursor: pointer;
             font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
         }
 
-        .multi-opt:hover { background: #f1f5f9; }
-        .multi-opt.selected { background: #dbeafe; color: var(--primary-color); font-weight: 600; }
+        .multi-opt:hover, .multi-option:hover { background: #f1f5f9; }
+        .multi-opt.selected, .multi-option.selected { background: #dbeafe; color: var(--primary-color); font-weight: 600; }
         .multi-opt.manage { color: var(--primary-color); border-top: 1px solid var(--border-color); }
+        
+        .opt-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .opt-delete {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+        .opt-delete:hover {
+            background: var(--danger-color);
+            color: #fff;
+            opacity: 1;
+        }
 
         .tags {
             display: flex;
@@ -641,7 +679,6 @@
         <div class="tabs-wrap">
             <nav class="tabs" role="tablist" aria-label="功能分区">
                 <button type="button" class="tab-button active" role="tab" aria-selected="true" data-tab="url-tab"><i class="fas fa-link"></i> URL</button>
-                <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="docs-tab"><i class="fas fa-book"></i> 文档</button>
                 <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="json-tab"><i class="fas fa-braces"></i> JSON</button>
                 <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="time-tab"><i class="fas fa-clock"></i> 时间</button>
                 <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="codec-tab"><i class="fas fa-shield-halved"></i> 编码</button>
@@ -682,12 +719,12 @@
                             <h3 class="card-title" style="font-size:0.95rem;margin-bottom:10px"><i class="fas fa-unlock-keyhole"></i> 加密参数解密（如 ee、e、user_ip 等 Base64 / 多次 URL 编码）</h3>
                             <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:10px">粘贴单段密文，或从上方解析结果点「解密」带入。依次尝试：URL 解码（含 +）→ Base64（含 URL-safe）→ UTF-8 文本；若结果为 JSON 则自动美化。</p>
                             <div class="input-wrap">
-                                <textarea id="decode-input" placeholder="粘贴 ee=… 的值（不要带参数名）" spellcheck="false" rows="3"></textarea>
+                                <textarea id="decode-input" placeholder="粘贴加密参数值（如 ee、e、user_ip 等，不要带参数名）" spellcheck="false" rows="3"></textarea>
                                 <button type="button" class="clear-in" data-clear="decode-input" aria-label="清空"><i class="fas fa-times"></i></button>
                             </div>
                             <div class="btn-row">
                                 <button type="button" class="btn" id="btn-decode-run"><i class="fas fa-wand-magic-sparkles"></i> 一键解密</button>
-                                <button type="button" class="btn secondary" id="btn-decode-from-url"><i class="fas fa-filter"></i> 从当前 URL 取 ee</button>
+                                <button type="button" class="btn secondary" id="btn-decode-from-url"><i class="fas fa-filter"></i> 从 URL 取参数值</button>
                                 <button type="button" class="btn ghost" id="btn-decode-copy"><i class="fas fa-copy"></i> 复制结果</button>
                             </div>
                             <div id="decode-output" class="result-box" aria-live="polite"></div>
@@ -708,28 +745,6 @@
                             <button type="button" class="btn secondary" id="btn-copy-compare"><i class="fas fa-copy"></i> 复制比对</button>
                         </div>
                         <div id="comparison-results" class="result-box" aria-live="polite"></div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="docs-tab" class="tab-content" role="tabpanel">
-                <div class="layout-grid">
-                    <div class="card" style="grid-column: 1 / -1">
-                        <h2 class="card-title"><i class="fas fa-book-open"></i> 接口文档摘录对照</h2>
-                        <p style="font-size:0.86rem;color:var(--text-secondary);margin-bottom:12px">以下为从您提供的 PDF/DOCX 抽取并<strong>内嵌在页面中</strong>的节选（Mixer 为 PDF 文本片段），便于与 Tracking / Mixer 参数对照。完整内容请以本地原件为准：<code>Mixer 接口文档.pdf</code>、<code>奇效Dsp Tracking 接口文档.docx</code>、<code>Cupid Tracking GET 接口.docx</code>。</p>
-                        <div class="doc-toolbar">
-                            <label for="doc-ref-select" class="sr-only">选择文档</label>
-                            <select id="doc-ref-select" aria-label="选择预置文档">
-                                <option value="mixer">Mixer 接口文档（摘录）</option>
-                                <option value="dsp">奇效 DSP Tracking（摘录）</option>
-                                <option value="cupid">Cupid Tracking GET（摘录）</option>
-                            </select>
-                            <button type="button" class="btn secondary sm" id="btn-doc-copy"><i class="fas fa-copy"></i> 复制当前文档</button>
-                            <button type="button" class="btn sm" id="btn-doc-compare-url"><i class="fas fa-magnifying-glass-chart"></i> 用当前 URL 参数检索文档</button>
-                        </div>
-                        <pre id="doc-ref-body" class="doc-pre" role="region" aria-label="文档正文"></pre>
-                        <div id="doc-compare-result" class="result-box" style="margin-top:14px" aria-live="polite"></div>
-                        <p style="font-size:0.8rem;color:var(--text-secondary);margin-top:12px"><strong>延伸：</strong>在「URL」页解析链接后，可用「检索文档」快速查看哪些参数名在节选中出现，辅助联调；密文体请用「加密参数解密」区处理。</p>
                     </div>
                 </div>
             </section>
@@ -769,8 +784,15 @@ name</textarea>
                             <p style="font-size:0.75rem;color:var(--text-secondary);margin-top:6px">提示：输入路径后也可按 <span class="kbd">Enter</span> 添加。</p>
                         </div>
                         <div class="form-group">
-                            <label>我的常用路径（点击插入到上方列表）</label>
-                            <div class="custom-list" id="saved-custom-fields-json"></div>
+                            <label>我的常用路径</label>
+                            <div class="multi-select" id="json-paths-multi-root">
+                                <div class="multi-trigger" id="json-paths-multi-trigger" tabindex="0" role="button" aria-expanded="false" aria-haspopup="listbox">
+                                    <span id="json-paths-multi-label">点击选择常用路径...</span>
+                                    <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                                </div>
+                                <div class="multi-panel" id="json-paths-multi-panel" role="listbox"></div>
+                            </div>
+                            <div class="tags" id="json-paths-selected-tags" aria-live="polite"></div>
                         </div>
                         <div class="btn-row">
                             <button type="button" class="btn" id="btn-extract-json"><i class="fas fa-play"></i> 提取</button>
@@ -911,11 +933,6 @@ name</textarea>
     </footer>
 
     <script>
-const EMBED_MIXER_DOC="Mixer 接口文档（人工整理节选）\n\n【域名】\n内网：http://api.cupid.qiyi.smart/mixer\n内网测试：http://test-api.cupid.qiyi.smart/mixer\n外网：http(s)://t7z.cupid.iqiyi.com/mixer（非 TV 端）\n\n【通用】\n后端代理须透传客户端 User-Agent；POST；Content-Type: application/json。\n设备信息能取必传；mac / imei / Androidid / idfa / oaid 等不能全空。\n\n【部分请求参数摘录】（√=必填；主=仅主站；盟=仅联盟）\na：uaa user id，字符串，一搜百映公司内部 qyid，√\ntsp：timestamp，客户端发请求时间戳（毫秒）\nnu：new uaa user id（iOS 整改后固定传新 qyid，mixer 添加防冲突）\nn：cupid user id，广告频次控制，√\nd：ad player id，含平台与站点信息，√\nb：tvid，奇谱 ID / episode id，视频定向，框内广告必填\ne：app version，√\nr：sdk version，√\nrid：request id，MD5(video_event_id + timestamp毫秒)，√\no：video_event_id，32 位 0-9a-f UUID，√\nazt：adzone tagname，广告位标签，信息流等必填\ny：ad type，目标广告形式，√ 见附录 y\nnw：network，当前网络，√\ng：client ip，后端代理 mixer 时必填\ni：client type（iphone/ipad/gphone/gpad/pcw 等），除 pca 外必传，√\nk：channel id，页面广告频道定向\nl：model key，渠道 id，爱奇艺 app 必填\nm：user agent，机型 / 浏览器 UA，√\nv：is vip，1 为 vip，爱奇艺 app 必填\npo：need policy，前贴片等必填\nfa：future ad，前贴片必填\nz：ad mode，离线广告必填\nq：screen index，开机屏等\nea：need empty tracking，mixer 自填 √\nlm：limit，信息流/feed 必填\nsk：skip，feed/信息流必填\natt：accepted template type，创意模板 | 分隔\nps：play source，播放来源\n\n（以上为 PDF 前几页要点摘录，字段说明、附录取值请以本地《Mixer 接口文档.pdf》全文为准。）\n";
-const EMBED_DSP_DOC="奇效Dsp Tracking 接口文档\n奇效Dsp Tracking 接口文档\n1. Get接口输入\n1.1 输入参\nURL参数名\nproto字段\n参数意义\n解释及取值\n字符位数\n备注\n变更方案\nbase表（bi）\nBI使用方式\na\ntype\ntype\nint32，\n0：impression\n1：click\n3：trueview\n4：close\n10: start\n11: firstQuartile\n12: midpoint\n13: thirdQuartile\n14：complete\n15：deliverImpression\n20：downloadStart\n21：downloaded\n22：installed\n23：conversion\n24：viewableImpression\n25：repeatedImpression\n26：slidingImpression\n27：incentiveTask\n28：奇效内部使用 标记电商激励-快递签收\n29：atcrImpression\n30：网大网剧cpx和ocpx不计费tracking\n31： 网大网剧开播\n32：allClick\n36： incentiveTaskClick (激励点击任务) \n37：GOLD_COIN（金币任务，跟曝光一起发）\n50：winnotice\n1~2\n后端填写\ntracking_type\nb\nrequest_timestamp\ntimestamp_sec\nint32，请求广告时服务器的时间戳（1970年1月1日0点以来的秒数）\n10\n后端填写\nrequest_time\nc\nimpression_id\nimpression_id\nstring，32位小写hex字符串，曝光的唯一ID\n32\n后端填写\nimpression_id\nd\norder_item_id\norder_item_id\nint64，订单项id\n后端填写\norder_plan_id\ne\nuser_ip\nuser_ip\nstring，base64字符串，点分十进制用户IP，目前只有移动端、TV端app提供该字段，flash等网页端（含pc影音）不传，Tracking服务从HTTP Header里获取\n后端填写\nuser_ip\nf\nhttp_cookie_id\ncupid user id\nstring，移动端app取值open udid(若无，fallback 为device id)，flash等网页端（含pc影音）不传\n后端填写\ncupid_user_id\ng\nflash_cookie_id\nuaa user id\nstring，移动端app取值为open udid(若无，fallback 为device id)\n后端填写\nuaa_user_id\nh\nlogin_user_id\npassport id\n登录用户的passportId，也叫UID\n后端填写\nlog in_user_id\ni\nad_player_id\nad_player_id\nstring，播放器ID，详细见爱奇艺端命名规则\n后端填写\nad_player_id\nj\nchannel_id\nchannel_id\nint64，频道ID\n后端填写\nchannel_id\nk\nalbum_id\nalbum_id\nint64，专辑ID\n后端填写\nalbum_id\nl\nmobile_key\nmobile_key\nstring，32位小写hex字符串，App分发渠道key，只有移动端、TV端app有效\n32\n后端填写\nmobile_key\nm\nmobile_user_agent\nmobile_user_agent\nstring，url encode后的移动端设备UA，只对移动端app有效\n后端填写\nmobile_user_agent\nn\nepisode_id\nepisode_id\nint64，视频ID\n后端填写\nepisode_id\nup\npps_ugc_upload_id\nupload_id\nstring，上传者ID，用于广告日志计算PPS UGC分成，不涉及H5 和TV端，PC客户端、移动端最新版本已不再传递，PC网页端也会逐渐消亡\n前端填写\npps_ugc_upload_id\no\nad_type_id\nad_type_id\nint32，即cuepointType（详见 广告 Pingback 格式文档 ）\n后端填写\nad_type_id\np\nad_zone_id\nad_zone_id\nint32，广告位id\n后端填写\nad_zone_id\nq\ncreative_id\ncreative_id\nint32，素材创意ID\n后端填写\ncreative_id\nr\nvideo_event_id\nvideo_event_id\nstring，32位小写hex字符串，视频播放ID，唯一标识每个VV\n前端填写\nvideo_event_id\ns\nsecurity_code\nstring，32位小写hex字符串，安全校验码，tv=1时校验a、b、d、i、j、k、n、o、p、q、bt的md5校验值，tv=2时在tv=1的基础上加上req、c、f字段的md5校验值\n后端填写\nETL使用\nt\nclient_type\nstring，可能的类型：flash，ipad，iPhone，gphone，iphone_html5，ipad_html5，gphone_html5；详见 移动端Mobile字段之 客户端类型\n后端填写\nBI确认是否有用\n引擎没有记录改参数，可删除\n待删除\nv\nexchange_charging_price\nexchange_charging_price\nstring，已加密，RTB的收费价格，宏占位符：${SETTLEMENT}，引擎取 exchange_charging_price和charging_price的最大值计费\n72\n前端替换宏或返回 map 结构时前端 mixer 直接 覆盖（添加）\n引擎确认是否可去掉\n引擎确认不可删除\nexchange_charging_price\nw\nbidding_price\nbiding price\nstring，已加密，dsp的出价\n后端填写\nbidding_price\nkp\nfrequency_control_id\nfrequency control id\nstring，跨屏频次控制id\n后端填写\n引擎确认\n引擎确认不可删除\nfrequency_control_id\nx\ndsp_charging_price\ncharging price\nstring，已加密，dsp show填写的收费价格，dsp-tracking收到后会取exchange_charging_price和charging_price的最大值；\n后端填写\ndsp_charging_price\n暂无使用\ny\nnetwork\nnetwork\nint32，网络状态，取值范围见 Ad Mixer Api 文档 关于网络状态的定义\n后端填写\nnetwork_type\nz\nis_offline\nis_offline\nint32，是否离线视频，1表示离线，0表示在线\n后端填写\nis_offline\nrm\nranking_magic\nranking magic\nstring， 算法回传的分桶信息\n11\n后端填写\n待迁移\nBI确认使用，不删除\nBI确认是否可迁移，相关表：\nreport_qixiao_tracking_pctr_deviation_daily\nreport_qixiao_tracking_pctr_monitor\nranking_magic\nmt\nmatch_type\nmatch type\nstring，关键词匹配类型\n后端填写\n引擎确认不使用\n算法确认需要\nBI确认未使用\n待迁移\nmatch_type\n暂无使用\npr\npctr\npctr\nstring，base64型string，预估最大点击率\n24\n后端填写\n待删除\nBI确认未使用\npctr\nrp\nreal_pctr\nreal pctr\nstring，base64型string，预估点击率\n24\n后端填写\nBI确认使用\n报表依赖： report_qixiao_advertiser_user_event_count_info（离线）\nreport_qixiao_tracking_pctr_monitor （离线）\nreport_qixiao_tracking_pctr_deviation_daily （离线）\nreal_ pctr\nbt\nbilling_type\nbilling type\nint32，结算方式：1：CPD，2：CPM，3：CPC，4：CPDL，5：CPV\n后端填写\nbilling_type\net\ntimestamp_sec\nevent_timestamp\nint64，前端替换，发送tracking时间（前端替换的是毫秒时间戳），宏占位符：__TS__\n前端替换宏\nimpression_time\ncv\napp_version\napp version\nstring，app版本\n后端填写\napp_version\nsv\nsdk_version\nsdk version\nstring，SDK版本\n前端填写\nsdk_version\nsk\nvideo_tag_info\nspecific keywords\nstring，关键字ID集合\n前端填写\n待迁移\nBI确认未使用\n引擎确认不使用\n算法确认需要\nvpi\nv_passport_id\nv_passport_id\nstring，订阅页大VID\n后端填写\nv_passport_id\nabt\nabtest_id\nabtest id\nstring，ABTest的Id\n后端填写\n引擎确认不使用\nBI确认未使用\n待删除\nabtest_id\nabg\nabtest_group\nabtest group\nstring ，ABTest的Group\n后端填写\n引擎确认不使用\nBI确认未使用\n待删除\nabtest_group\nwf\nweighting_factor\nweighting_factor\ndouble，加权系数\n后端填写\n算法确认不使用\nBI确认未使用\n待删除\nweighting_factor\n暂无使用\ntt\ntargeting_types\ntargeting_types\nint32，定向位图\n后端填写\ntargeting_types\ntk\ntag_tuple\ntargeting keyword\nstring，匹配关键词\n后端填写\nvideo_tag_infos\nabm\nabtest_mark\nabtest mask\nstring，AB test使用的掩码，统计小流量对比数据使用\n后端填写\nabtest_mark\npt\nplay_type\ncpv play type\nint32，CPV播放类型，宏占位符：CUPID_VPT\n前端替换宏\nplay_type\npts\nplay_times\ncpv play times\nint32，CPV播放时长，宏占位符：CUPID_VPC\n前端替换宏\nplay_times\nca\nclick_area\nclick area\nstring，点击区域，宏占位符：CUPID_CLA\n前端替换宏\nclick_area\natct\nclick_attach_creative\nclick attach creative\nint32，点击附加创意按钮及表单提交按钮时替换为附加创意类型，宏占位符：CUPID_ATCT: 1-电话、2-咨询、3-表单、4-电商，如果前端没有替换 CUPID_ATCT，引擎会处理为0，表示点击的不是附加创意按钮\n前端替换宏\nclick_attach_creative\natcr\nattach_creative_type\nattach creative type\nint32，附加创意类型，0-非附加创意, 1-电话、2-咨询、3-表单、 4-电商\n后端填写\nattach_creative_type\nog\norder_group\norder item group id\nint64，广告系列ID\n11\n后端填写\n引擎确认可删除\n算法确认需要，不能删除\n删除，改为引擎后关联\n不用\npf\nplatform_id\nplatform id\nint32，平台信息\n2\n后端填写\n删除\n引擎确认可以根据ad_player_id计算，可删除\n算法确认需要，不能删除\n删除，算法直接用base表里BI写的\n不用\nlc\nlocation\nlocation\nint32，地域码\n后端填写\nlocation\npi\npctr_info\npctr info\nstring，序列化后url encode的字符串，pctr详细信息\n52\n后端填写\n删除\nBI已切换成acg_pctr_info：report_qixiao_advertiser_user_event_count_info（离线）\npctr _info\nri\nrelativity_info\nrelativity info\nstring，序列化后url encode的字符串，广告质量相关性详细信息\n32\n后端填写\n引擎确认不使用\n算法不使用\n待删除\nBI确认未使用\nrelativity_info\n暂无使用\nbz\nbiz_type_id\nbiz type\nint32，广告源等类型，详见adbe_common/ads/proto/enums.proto/BizType\n后端填写\nbiz_line\ndcs\ncreative_status\nDynamic creative status\nstring，宏占位符：CUPID_DCS\n前端替换宏或返回 map 结构时前端 mixer 直接 覆盖（添加）\ndynamic_creative_status\ndci\ncreative_info\nDynamic creative info\nstring，宏占位符：CUPID_DCI\n前端替换宏或返回 map 结构时前端 mixer 直接 覆盖（添加）\ndynamic_creative_info\nfc\nfrom_cache\nfrom cache\nstring，标识tracking是否来自缓存数据，对应宏CUPID_FC，1标识来自缓存，非缓存数据不做替换。\n前端替换宏\nfrom_cache\n暂无使用\nbts\nbusiness_data_ts\nbussiness data timestamp\nint32，业务数据生成时间戳\n后端填写\nlgt\nlongitude\nlongitude\n";
-const EMBED_CUPID_DOC="Cupid Tracking GET 接口\n一、工作方式\n注意：新增字段名称切勿以“b”结尾，因为已有字段“b”表示tracking触发时间，在老版本的tracking里，需要前端在发送tracking时查找“b=”，并做替换赋值\n三、TrackingLog 定义\nMapEntry\n字段\n类型\nkey\nstring\nvalue\nstring\nTrackingLog\n字段\n类型\n取值说明\ntraffic_data\nMapEntry\n1\nndad_data\nMapEntry\n2\nshow_data\nMapEntry\n3\nalgo_data\nMapEntry\n4\n后端返回时填充Tracking的必要字段，前端在触发Tracking时补全其他字段并发送。\n二、URI参数\n注意：新增字段名称切勿以“b”结尾，因为已有字段“b”表示tracking触发时间，在老版本的tracking里，需要前端在发送tracking时查找“b=”，并做替换赋值\n字段\n内容\n取值\n备注\n对应TrackingLog字段\na\ntype\n数字\n0：impression\n1：click\n2：push -- 退回\n3：trueview\n4：close\n5：RPUSH -- 推送量\n10: start\n11: firstQuartile\n12: midpoint\n13: thirdQuartile\n14：complete\n15： deliverImpression\n20：downloadStart\n21：downloaded\n22： installed\n23：conversion\n24：viewableImpression(可见曝光)\n25：repeatedImpression(重复曝光)\n26 ：slidingImpression(滑动曝光)\n27：incentiveTask（激励视频任务）\n28：INCENTIVE_EXPRESS_COMPLETE\n29： atcrImpression\n30：FILM_CONVERSION_OCPX_CPX\n31：FILM_START_PLAY\n32：INVALID_CLICK\n33: scan qrcode(tv端扫码曝光)\n34：EXTERN_CONVERSION\n35：LOSS_NOTICE\n36： INCENTIVETASK_CLICK(激励点击任务) \n50：WIN_NOTICE\n前端添加， 用其计算s 字段\n贴片、原生视频发送event tracking，其他广告不发送。\nb\ntimestamp\n数字，tracking 触发时间 ，与服务器时间校正后的时间戳（1970年1月1日0点以来的 秒数 ）\n前端添加， 与s 字段中的时间戳取值保持一致\nc\nimpression_id\n字符串，每次请求每个广告都有唯一的impression_id，32位 a-z0-9字符串\n后端添加\n前端用其计算s 字段\nd\norder_item_id\n数字，订单项id\n后端添加\n前端用其计算s 字段\ne\nuser_ip\n字符串，用户ip，只有移动端、TV端传递，其他端Tracking服务从HTTP Header里获取\nMixer 添加\nf\ncupid_user_id\n字符串，原来的http_cookie_id，用于广告频控，具体取值参照 广告userId文档\n后端添加\ng\nuaa_user_id\n字符串，原来的flash_cookie_id，用于一搜百映，具体取值 参照 广告userId文档\n后端添加\nif\nidfa\n字符串，取show请求参数idfa的值， 仅iOS传递，使用原值\n后端添加\nou\nopen_udid\n字符串，取show请求参数 ouid的值， 仅iOS传递，使用原值\n后端添加\nim\nimei\n字符串， 取show请求参数 imei 的值， 仅Android传递，使用原值\n后端添加\nai\nandroid_id\n字符串， 取show请求参数 aid 的值， 仅Android传递，使用原值\n后端添加\naa\nandroid_advertising_id\n字符串， 取show请求参数 aaid 的值， 仅Android传递，使用原值 （目前尚未传递）\n后端添加\nmc\nmac\n字符串， 取show请求参数 mac 的值， iOS和Android（包括TV）均传递，使用原值\n后端添加\niv\nis_vip\n数字，是否VIP，后端判断为VIP用户则取值1，否则取值0\n后端添加\nian\nis available for\nnon-housing pre roll\n字符串，该次请求流量是否可出商广贴片，“1”代表可以出商广贴片，“0”代表不可以出商广贴片\n后端添加\nuvpt\nuser vip type\n数值，标识用户的vip属性，0：非vip，1：黄金vip，4：网球vip；如果同时为黄金和网球，则为1+4=5；也就是如果用户是vip，vip类型按照bit位置标识;\n如果用户是vip，但是vip属性无法识别，不传递该字段i\n后端添加\nivm\nis_vip_movie\n数字，是否VIP影片，后端判断为VIP影片则取值1，否则取值0\n后端添加\nmvpt\nmovie vip type\n数值，标识视频的vip属性，0：非vip，1：黄金vip，4：网球vip；如果同时为黄金和网球，则为1+4=5；也就是如果视频是vip，vip类型按照bit位置标识\n如果视频是vip，但是vip属性无法识别，不传递该字段\n后端添加\nh\npassport_id\n数字，用户登录id\n后端添加\ni\nad_player_id\n字符串，广告播放器id，标识平台和站点\n后端添加\nj\nchannel_id\n数字，频道id\n后端添加\n若episode_id是带 6200000000000、 7200000000000等前缀的PPS存量视频，则由前端（PC网页端）添加\nk\nalbum_id\n数字，专辑id\n后端添加\n若episode_id是带 6200000000000、 7200000000000等前缀的PPS存量视频，则由前端（PC网页端）添加\nn\nepisode_id\n数字，视频id\n后端添加\n若是带6200000000000、7200000000000等前缀的PPS存量视频，则由前端（PC网页端）添加\nl\nmobile_key\n字符串，App分发渠道key， 32位a-z0-9字符串，只有移动端、TV端传递\nMixer 添加\nm\nmobile_user_agent\n字符串，设备机型，只有移动端、TV端传递\nMixer 添加\no\ncuepoint_type\n数字，cuepoint类型，0-页面、1-前贴、2-中贴、3-后贴、6-暂停、7-工具栏、8-视点、10-common overlay\n后端添加\nt\ncuepoint_id\n数字，策略 id\n后端添加\np\nad_zone_id\n数字，广告位id\n后端添加\nq\ncreative_id\n数字，素材创意id\n后端添加\nr\nvideo_event_id\n字符串，视频播放id，标识每个VV， 32位a-z0-9字符串\n前端添加， 用其计算s 字段\ns\nsecurity_code （ deprecated ）\n字符串，校验码\n版本1：md5(type + timestamp + impression_id + order_item_id + video_event_id + 'cupid')\n旧版本（线上）：md5('impression'|'click' + timestamp + impression_id + order_item_id + video_event_id + 'cupid')\n前端添加\ntst\ntracking security token\ntracking签名，由引擎端生成，生效以后，替代security code\n后端添加\nve\nmd5_version\n数字，校验码算法的版本号，目前的版本是1\n前端添加\nu\nrole_in_template\n数字，是否是主广告位，0-否、1-是\n后端添加\nv\ncharging_price\n字符串，价格信息\n后端添加\nw\ntime_slices\n字符串，时间片信息， 多个时间片用逗号分隔\n贴片广告\n- 占用单个时间片的情况：'2'\n- 占用多个时间片的情况：'2,3'\n非贴片广告\n- 取固定值：'1'\n后端添加\ncdi\ncard index\n字符串，位次信息，目前只有信息流广告使用，标识同一个session中处于 第几个位次\n后端添加\npo\nplay order\n字符串，play order信息，目前只有信息流广告使用，标识同一个请求中处于第几个位置\n后端添加\ny\nnetwork\n数字，网络状态 ，取值范围见 Ad Mixer Api 文档 关于网络状态的定义，只有移动端、TV端传递\nMixer 添加\nz\nis_offline\n数字，是否是离线视频，0-非离线；1-离线，只有移动端、TV端传递\nMixer 添加\nup\nupload_id\n数字，上传者id，用于PPS 存量UGC 视频分成，不涉及H5 和TV端\nPC客户端、移动端最新版本已不再传递，PC网页端也会逐渐消亡\n前端添加\n移动端由Mixer 添加\nkp\nfrequency_control_id\n字符串，跨屏频次控制id\n后端添加\ncv\nclient_version\n字符串，App 版本号\n前端添加\n移动端、TV端由Mixer 添加\nsv\nsdk_version\n字符串，SDK 版本号\n前端添加\n移动端、TV端由Mixer 添加\nri\nrequest_id\n字符串，请求id，每个show请求的唯一标识，32位a-z0-9字符串\n后端添加\nrt\nrequest_timestamp\n数字，前端请求广告时后端服务器的时间戳（1970年1月1日0点以来的 秒数 ）\n后端添加\nas\nall_time_slices\n字符串，所有时间片信息，包含真订单项和空订单项，订单项之间用';'分隔\n贴片广告\n- 所有广告都占用单个时间片的情况：'1;2;3;4;5'\n- 存在广告占用多个时间片的情况：'1;2,3;4;5'\n非贴片广告\n- 每个广告取固定值：'1'，若是多个广告则是：'1;1;1;1;1'\n后端添加\ndr\nvideo_duration\n数字，视频时长，获取不到则不返回该字段\n后端添加\nst\nstart_time\n数字，广告开始展现时视频播放进度条上的时间，单位秒\n页面：0\n前贴：0\n中贴：中贴打点时间（slot start time）\n角标：角标打点时间（slot start time）\n视链：视链打点时间（slot start time）\n暂停：视频当前播放进度\n工具栏：视频当前播放进度\n随视购：随视购打点时间（slot start time）\noverlay：overlay打点时间（slot start time）\n通用浮层： 打点时间（slot start time）\n通用浮层2： 打点时间（slot start time）\n前端添加\nrix\nrequest_index\n数字，请求序号，用于标识特定时间段内同个广告位请求广告的序号，取值默认从1开始，如用户一次视频暂停期间，前端会做暂停轮换，每次请求会+1并传递给后端，后端将参数值填充到 tracking（cupid tracking 和空订单项）对应的字段里，没有传或值为空则不填充，目前该参数可用于分析暂停轮换增加的库存和不同请求序号上广告的点击率等，未来后端可用于请求次序等更细粒度的投放控制\n后端添加\nta\ntest ab\n字符串， abtest的bucket标识， 后端添加，用于算法的效果分析；\n后端添加\nalg\nranking algorithm\nranking服务填充的算法标识符，ranking添加， 使用逗号分隔；\n分组标识符\n后端（ranking）添加\nht\nhit_tags\n字符串，该次投放命中的属性标签id，可能包含多个id，用逗号分隔，目前只有通用浮层使用\n后端添加\naci\nadjust_city_id\n数字，表明被矫正的城市id；-1代表着没有发生矫正\n后端添加\nfbt\npdb_fallback_type\n";
-
-    
 (function () {
     'use strict';
 
@@ -1153,31 +1170,6 @@ const EMBED_CUPID_DOC="Cupid Tracking GET 接口\n一、工作方式\n注意：�
         }
     });
 
-    function getEmbeddedDoc(which) {
-        if (typeof EMBED_MIXER_DOC === 'undefined') {
-            return '（文档正文未定义：页面脚本可能不完整，请重新保存或刷新）\n';
-        }
-        if (which === 'mixer') return EMBED_MIXER_DOC;
-        if (which === 'dsp') return EMBED_DSP_DOC;
-        if (which === 'cupid') return EMBED_CUPID_DOC;
-        return '';
-    }
-
-    function paramInDocSnippet(doc, key) {
-        if (!key) return false;
-        if (key.length >= 3) return doc.includes(key);
-        try {
-            return new RegExp('(^|[\\s\\n])' + key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[\\s\\n:：，,])').test(doc);
-        } catch { return doc.includes(key); }
-    }
-
-    function refreshDocPanel() {
-        const sel = document.getElementById('doc-ref-select');
-        const body = document.getElementById('doc-ref-body');
-        if (!sel || !body) return;
-        body.textContent = getEmbeddedDoc(sel.value);
-    }
-
     // Tabs
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1188,37 +1180,11 @@ const EMBED_CUPID_DOC="Cupid Tracking GET 接口\n一、工作方式\n注意：�
                 b.classList.toggle('active', on);
                 b.setAttribute('aria-selected', on ? 'true' : 'false');
             });
-            if (id === 'docs-tab') refreshDocPanel();
+            
         });
     });
 
-    document.getElementById('doc-ref-select').addEventListener('change', refreshDocPanel);
-    document.getElementById('btn-doc-copy').addEventListener('click', () => {
-        const t = document.getElementById('doc-ref-body').textContent;
-        if (!t.trim()) { toast('无内容', false); return; }
-        copyText(t);
-    });
-    document.getElementById('btn-doc-compare-url').addEventListener('click', () => {
-        const raw = document.getElementById('url-input').value.trim();
-        const doc = document.getElementById('doc-ref-body').textContent;
-        if (!raw) { toast('请先在「URL」标签输入链接', false); return; }
-        if (!doc.trim()) { toast('文档内容为空', false); return; }
-        let keys = [];
-        try {
-            const u = new URL(normalizeUrlInput(raw));
-            keys = [...new URLSearchParams(u.search).keys()];
-        } catch (e) {
-            toast('URL 无效', false);
-            return;
-        }
-        const rows = keys.map(k => ({ k, hit: paramInDocSnippet(doc, k) }));
-        const hitn = rows.filter(r => r.hit).length;
-        const box = document.getElementById('doc-compare-result');
-        box.innerHTML = '<div style="font-weight:600;margin-bottom:8px">当前 URL 共 ' + keys.length + ' 个参数名 · 在当前节选文档中命中约 ' + hitn + ' 个（单字母参数用规则匹配，仅供参考）</div>' +
-            rows.map(r => '<div class="result-row ' + (r.hit ? 'match' : 'warn') + '"><strong>' + escapeHtml(r.k) + '</strong> · ' + (r.hit ? '可能在文档中出现' : '节选中未明显出现') + '</div>').join('');
-        toast('检索完成');
-    });
-
+    
     // Clear buttons
     document.querySelectorAll('[data-clear]').forEach(b => {
         b.addEventListener('click', () => {
@@ -1240,17 +1206,33 @@ const EMBED_CUPID_DOC="Cupid Tracking GET 接口\n一、工作方式\n注意：�
 
     function renderUrlMultiPanel() {
         urlPanel.innerHTML = '';
-        const mk = (value, text, extraClass) => {
+        const mk = (value, text, extraClass, isCustom = false) => {
             const d = document.createElement('div');
             d.className = 'multi-opt' + (extraClass ? ' ' + extraClass : '');
             d.dataset.value = value;
-            d.textContent = text;
+            if (isCustom) {
+                d.innerHTML = `<span class="opt-text">${escapeHtml(text)}</span><button type="button" class="opt-delete" title="删除" aria-label="删除"><i class="fas fa-trash"></i></button>`;
+                // 删除按钮事件
+                d.querySelector('.opt-delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    customUrlParams = customUrlParams.filter(p => p !== value);
+                    selectedUrlParams = selectedUrlParams.filter(p => p !== value);
+                    localStorage.setItem(STORAGE.urlParams, JSON.stringify(customUrlParams));
+                    persistUrlSelection();
+                    renderUrlMultiPanel();
+                    renderUrlTags();
+                    updateUrlMultiLabel();
+                    toast('已删除参数');
+                });
+            } else {
+                d.textContent = text;
+            }
             if (selectedUrlParams.includes(value)) d.classList.add('selected');
             urlPanel.appendChild(d);
         };
         mk(URL_MULTI_ALL, '全部参数', '');
         PRESET_URL_PARAMS.forEach(p => mk(p, p, ''));
-        customUrlParams.forEach(p => mk(p, p, ''));
+        customUrlParams.forEach(p => mk(p, p, '', true));
         mk('__manage__', '管理自定义参数…', 'manage');
     }
 
@@ -1521,10 +1503,23 @@ const EMBED_CUPID_DOC="Cupid Tracking GET 接口\n一、工作方式\n注意：�
     document.getElementById('btn-clear-url').addEventListener('click', clearUrlTab);
     document.getElementById('btn-decode-run').addEventListener('click', runDecodePipeline);
     document.getElementById('btn-decode-from-url').addEventListener('click', () => {
-        const v = lastUrlParamValues['ee'];
-        if (!v) { toast('请先在上方解析 URL，且链接中含 ee 参数', false); return; }
+        const keys = Object.keys(lastUrlParamValues);
+        if (keys.length === 0) { toast('请先在上方解析 URL', false); return; }
+        
+        // 优先尝试常见加密参数
+        const priorityKeys = ['ee', 'e', 'user_ip', 'f', 'g', 's', 'security_code'];
+        let selectedKey = '';
+        for (const k of priorityKeys) {
+            if (lastUrlParamValues[k]) { selectedKey = k; break; }
+        }
+        
+        // 如果没有优先参数，使用第一个参数
+        if (!selectedKey) selectedKey = keys[0];
+        
+        const v = lastUrlParamValues[selectedKey];
         document.getElementById('decode-input').value = v;
         runDecodePipeline();
+        toast(`已提取参数 "${selectedKey}" 的值`);
     });
     document.getElementById('btn-decode-copy').addEventListener('click', () => {
         if (!lastDecodeText) { toast('请先解密', false); return; }
@@ -1727,32 +1722,109 @@ const EMBED_CUPID_DOC="Cupid Tracking GET 接口\n一、工作方式\n注意：�
         });
     }
 
-    function renderSavedJsonFields() {
-        const c = document.getElementById('saved-custom-fields-json');
-        c.innerHTML = '';
+    // JSON路径下拉选取相关
+    let selectedJsonPaths = [];
+    const jsonPathsRoot = document.getElementById('json-paths-multi-root');
+    const jsonPathsPanel = document.getElementById('json-paths-multi-panel');
+    const jsonPathsTrigger = document.getElementById('json-paths-multi-trigger');
+    const jsonPathsLabel = document.getElementById('json-paths-multi-label');
+    const jsonPathsTags = document.getElementById('json-paths-selected-tags');
+
+    function renderJsonPathsPanel() {
+        jsonPathsPanel.innerHTML = '';
+        if (customJsonFields.length === 0) {
+            jsonPathsPanel.innerHTML = '<div style="padding:12px;color:var(--text-secondary);text-align:center">暂无保存的路径</div>';
+            return;
+        }
         customJsonFields.forEach(field => {
-            const div = document.createElement('div');
-            div.className = 'item';
-            const span = document.createElement('span');
-            span.textContent = field;
-            span.addEventListener('click', () => {
-                const ta = document.getElementById('field-paths');
-                const lines = ta.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-                if (!lines.includes(field)) ta.value = ta.value.replace(/\s*$/, '') + (ta.value.trim() ? '\n' : '') + field;
+            const opt = document.createElement('div');
+            opt.className = 'multi-option';
+            opt.setAttribute('role', 'option');
+            opt.setAttribute('data-value', field);
+            opt.innerHTML = `<span class="opt-text">${escapeHtml(field)}</span><button type="button" class="opt-delete" title="删除" aria-label="删除"><i class="fas fa-trash"></i></button>`;
+            if (selectedJsonPaths.includes(field)) opt.classList.add('selected');
+            
+            // 点击选择/取消选择
+            opt.addEventListener('click', (e) => {
+                if (e.target.closest('.opt-delete')) return;
+                e.stopPropagation();
+                const idx = selectedJsonPaths.indexOf(field);
+                if (idx > -1) {
+                    selectedJsonPaths.splice(idx, 1);
+                } else {
+                    selectedJsonPaths.push(field);
+                }
+                renderJsonPathsPanel();
+                renderJsonPathsTags();
+                syncJsonPathsToTextarea();
             });
-            const del = document.createElement('button');
-            del.type = 'button';
-            del.className = 'btn secondary sm';
-            del.innerHTML = '<i class="fas fa-trash"></i>';
-            del.addEventListener('click', () => {
+            
+            // 删除按钮
+            opt.querySelector('.opt-delete').addEventListener('click', (e) => {
+                e.stopPropagation();
                 customJsonFields = customJsonFields.filter(f => f !== field);
+                selectedJsonPaths = selectedJsonPaths.filter(f => f !== field);
                 localStorage.setItem(STORAGE.jsonFields, JSON.stringify(customJsonFields));
-                renderSavedJsonFields();
+                renderJsonPathsPanel();
+                renderJsonPathsTags();
+                syncJsonPathsToTextarea();
+                toast('已删除路径');
             });
-            div.appendChild(span);
-            div.appendChild(del);
-            c.appendChild(div);
+            
+            jsonPathsPanel.appendChild(opt);
         });
+    }
+
+    function renderJsonPathsTags() {
+        jsonPathsTags.innerHTML = '';
+        if (selectedJsonPaths.length === 0) {
+            jsonPathsLabel.textContent = '点击选择常用路径...';
+            return;
+        }
+        jsonPathsLabel.textContent = `已选择 ${selectedJsonPaths.length} 个路径`;
+        selectedJsonPaths.forEach(field => {
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.innerHTML = escapeHtml(field) + '<button type="button" aria-label="移除"><i class="fas fa-times"></i></button>';
+            tag.querySelector('button').addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectedJsonPaths = selectedJsonPaths.filter(f => f !== field);
+                renderJsonPathsPanel();
+                renderJsonPathsTags();
+                syncJsonPathsToTextarea();
+            });
+            jsonPathsTags.appendChild(tag);
+        });
+    }
+
+    function syncJsonPathsToTextarea() {
+        const ta = document.getElementById('field-paths');
+        const existing = ta.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        // 合并现有和选中的，去重
+        const merged = [...new Set([...existing, ...selectedJsonPaths])];
+        ta.value = merged.join('\n');
+    }
+
+    // JSON路径下拉事件
+    if (jsonPathsTrigger) {
+        jsonPathsTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const expanded = jsonPathsPanel.classList.contains('show');
+            jsonPathsPanel.classList.toggle('show', !expanded);
+            jsonPathsTrigger.setAttribute('aria-expanded', String(!expanded));
+        });
+        document.addEventListener('click', (e) => {
+            if (!jsonPathsRoot.contains(e.target)) {
+                jsonPathsPanel.classList.remove('show');
+                jsonPathsTrigger.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    function renderSavedJsonFields() {
+        // 重新渲染下拉面板
+        renderJsonPathsPanel();
+        renderJsonPathsTags();
     }
 
     function addJsonPathFromInput() {
