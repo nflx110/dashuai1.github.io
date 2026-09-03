@@ -651,6 +651,136 @@
             border-top: 1px dashed var(--border-color);
         }
 
+
+        .check-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            margin: 8px 0 4px;
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+        }
+        .check-row label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .check-row input { accent-color: var(--primary-color); }
+        .stat-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .stat-pill {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: var(--text-primary);
+        }
+        .stat-pill.ok { background: #dcfce7; color: #166534; }
+        .stat-pill.warn { background: #fef9c3; color: #854d0e; }
+        .stat-pill.err { background: #fee2e2; color: #991b1b; }
+        .stat-pill.muted { background: #e2e8f0; color: #475569; }
+        .mixer-result {
+            max-height: min(78vh, 900px);
+            overflow: auto;
+            padding: 8px;
+        }
+        .block-card {
+            margin-bottom: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: #fff;
+        }
+        .block-card.match { border-left: 4px solid var(--success-color); }
+        .block-card.warn { border-left: 4px solid var(--warning-color); }
+        .block-card.err { border-left: 4px solid var(--danger-color); }
+        .block-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            padding: 10px 12px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.86rem;
+        }
+        .block-head strong { font-family: ui-monospace, Menlo, monospace; }
+        .block-head .chip {
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            font-weight: 700;
+        }
+        .block-keys {
+            width: 100%;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+        .block-keys code {
+            background: #fef9c3;
+            padding: 1px 5px;
+            border-radius: 4px;
+            margin-right: 4px;
+            font-size: 0.74rem;
+        }
+        .block-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 80px;
+        }
+        @media (max-width: 720px) {
+            .block-grid { grid-template-columns: 1fr; }
+        }
+        .block-pane {
+            overflow: auto;
+            max-height: 420px;
+            font-family: ui-monospace, Menlo, monospace;
+            font-size: 0.75rem;
+            line-height: 1.45;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .block-pane + .block-pane { border-left: 1px solid #334155; }
+        .pane-lab {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            padding: 6px 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            background: #1e293b;
+            color: #94a3b8;
+        }
+        .dl-line {
+            padding: 0 10px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .dl-line.same { color: #cbd5e1; }
+        .dl-line.chg { background: #422006; color: #fde68a; }
+        .dl-line.del { background: #450a0a; color: #fca5a5; }
+        .dl-line.add { background: #052e16; color: #86efac; }
+        .dl-line.empty { color: #64748b; font-style: italic; }
+        .layout-span-2 { grid-column: 1 / -1; }
+        .filter-mini {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: #f8fafc;
+            font-size: 0.88rem;
+            margin-bottom: 10px;
+        }
+
         .decode-steps {
             font-size: 0.8rem;
             color: var(--text-secondary);
@@ -680,6 +810,7 @@
             <nav class="tabs" role="tablist" aria-label="功能分区">
                 <button type="button" class="tab-button active" role="tab" aria-selected="true" data-tab="url-tab"><i class="fas fa-link"></i> URL</button>
                 <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="json-tab"><i class="fas fa-braces"></i> JSON</button>
+                <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="mixer-tab"><i class="fas fa-code-compare"></i> Mixer</button>
                 <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="time-tab"><i class="fas fa-clock"></i> 时间</button>
                 <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="codec-tab"><i class="fas fa-shield-halved"></i> 编码</button>
             </nav>
@@ -807,6 +938,59 @@ name</textarea>
                         <div id="verification-results" class="result-box">
                             <span style="color:var(--text-secondary)">提取后在此汇总校验状态。</span>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <section id="mixer-tab" class="tab-content" role="tabpanel">
+                <div class="layout-grid">
+                    <div class="card">
+                        <h2 class="card-title"><i class="fas fa-file-import"></i> 参考 Response <span class="hint">基准 / 正确包</span></h2>
+                        <div class="form-group">
+                            <label for="mixer-ref-input">Mixer JSON（支持数组或整包）</label>
+                            <div class="input-wrap">
+                                <textarea id="mixer-ref-input" placeholder='粘贴参考 mixer response，例如 [{ "adZoneId": 670, "templateType": "roll" }]' spellcheck="false" style="min-height:180px"></textarea>
+                                <button type="button" class="clear-in" data-clear="mixer-ref-input" aria-label="清空"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="btn-row" style="margin-top:0">
+                            <button type="button" class="btn secondary sm" id="btn-mixer-format-ref"><i class="fas fa-indent"></i> 格式化</button>
+                            <button type="button" class="btn secondary sm" id="btn-mixer-from-json"><i class="fas fa-arrow-up"></i> 从 JSON 页带入参考</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2 class="card-title"><i class="fas fa-file-export"></i> 待测 Response <span class="hint">实际抓包</span></h2>
+                        <div class="form-group">
+                            <label for="mixer-act-input">Mixer JSON</label>
+                            <div class="input-wrap">
+                                <textarea id="mixer-act-input" placeholder="粘贴待测 mixer response…" spellcheck="false" style="min-height:180px"></textarea>
+                                <button type="button" class="clear-in" data-clear="mixer-act-input" aria-label="清空"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="btn-row" style="margin-top:0">
+                            <button type="button" class="btn secondary sm" id="btn-mixer-format-act"><i class="fas fa-indent"></i> 格式化</button>
+                            <button type="button" class="btn ghost sm" id="btn-mixer-swap"><i class="fas fa-right-left"></i> 左右互换</button>
+                        </div>
+                    </div>
+                    <div class="card layout-span-2">
+                        <h2 class="card-title"><i class="fas fa-code-compare"></i> Mixer Response 对比 <span class="hint"><span class="kbd">⌘/Ctrl</span>+<span class="kbd">Enter</span></span></h2>
+                        <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:8px">按<strong>广告块 / 数组项</strong>整段并排对比，差异行高亮。不再拆成单个字段。</p>
+                        <div class="check-row">
+                            <label><input type="checkbox" id="mixer-only-diff" checked> 只看有差异的块</label>
+                            <label><input type="checkbox" id="mixer-align-ads" checked> 按广告位对齐数组</label>
+                            <label><input type="checkbox" id="mixer-ignore-vast" checked> 忽略 vastObject</label>
+                            <label><input type="checkbox" id="mixer-ignore-empty"> 忽略 emptyTracking</label>
+                            <label><input type="checkbox" id="mixer-ignore-noise"> 忽略动态噪声字段</label>
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="btn" id="btn-mixer-compare"><i class="fas fa-magnifying-glass"></i> 比对</button>
+                            <button type="button" class="btn secondary" id="btn-copy-mixer"><i class="fas fa-copy"></i> 复制比对</button>
+                            <button type="button" class="btn ghost" id="btn-clear-mixer"><i class="fas fa-broom"></i> 清空</button>
+                        </div>
+                        <input type="search" class="filter-mini" id="mixer-filter" placeholder="筛选块：广告位、模版、路径…" style="margin-top:12px;display:none">
+                        <div id="mixer-summary" class="stat-bar"></div>
+                        <div id="mixer-results" class="result-box mixer-result" aria-live="polite"></div>
                     </div>
                 </div>
             </section>
@@ -2025,6 +2209,364 @@ name</textarea>
         copyText(lastEncText);
     });
 
+
+    // Mixer response JSON compare — 按广告块/数组整段并排
+    let lastMixerCompareText = '';
+    let lastMixerBlocks = [];
+
+    const MIXER_NOISE_KEYS = new Set([
+        'impressionXid', 'sei', 'ecpm', 'crex', 'coverUrl', 'dspName',
+        'rt', 'usi', 'ri', 'ltt', 'lgt', 'mc', 'g', 'im', 'kp', 'f',
+        'requestId', 'videoEventId', 'reqUrl'
+    ]);
+    const AD_HINTS = ['adZoneId', 'templateType', 'creativeObject', 'emptyTracking', 'clickThroughType'];
+    const ARRAY_KEYS = ['ads', 'adList', 'adInfos', 'slots', 'adSlots', 'ad'];
+
+    function unwrapMixerPayload(data) {
+        if (data == null) return data;
+        if (typeof data === 'string') {
+            try { data = tryParseJsonLoose(data); } catch { return data; }
+        }
+        if (Array.isArray(data)) return data;
+        if (data && typeof data === 'object') {
+            for (const k of ARRAY_KEYS) {
+                if (Array.isArray(data[k])) return data;
+            }
+            for (const wrap of ['data', 'result', 'body', 'response', 'payload']) {
+                if (data[wrap] != null) return unwrapMixerPayload(data[wrap]);
+            }
+        }
+        return data;
+    }
+
+    function looksLikeAd(x) {
+        return !!(x && typeof x === 'object' && !Array.isArray(x) && AD_HINTS.some(k => k in x));
+    }
+
+    function adAlignKey(ad, idx) {
+        if (!ad || typeof ad !== 'object' || Array.isArray(ad)) return '#' + idx;
+        const z = ad.adZoneId != null ? String(ad.adZoneId) : '';
+        const t = ad.templateType != null ? String(ad.templateType) : '';
+        const ctt = ad.clickThroughType != null ? String(ad.clickThroughType) : '';
+        const c = ad.comment != null ? String(ad.comment).slice(0, 40) : '';
+        if (z || t) return (z || 'na') + ' · ' + (t || 'na') + (ctt !== '' ? ' · ctt' + ctt : '') + (c ? ' · ' + c : '');
+        return '#' + idx;
+    }
+
+    function sanitizeNode(val, opt) {
+        if (val == null || typeof val !== 'object') return val;
+        if (Array.isArray(val)) return val.map(x => sanitizeNode(x, opt));
+        const o = {};
+        Object.keys(val).forEach(k => {
+            if (opt.ignoreVast && (k === 'vastObject' || k === 'vast')) return;
+            if (opt.ignoreEmpty && k === 'emptyTracking') return;
+            if (opt.ignoreNoise && MIXER_NOISE_KEYS.has(k)) return;
+            o[k] = sanitizeNode(val[k], opt);
+        });
+        return o;
+    }
+
+    function collectBlocks(data, path) {
+        const blocks = [];
+        if (Array.isArray(data)) {
+            data.forEach((item, i) => {
+                const p = (path || 'ads') + '[' + i + ']';
+                if (item && Array.isArray(item.ads)) {
+                    item.ads.forEach((ad, ai) => {
+                        blocks.push({ path: p + '.ads[' + ai + ']', title: adAlignKey(ad, ai), value: ad });
+                    });
+                } else {
+                    blocks.push({ path: p, title: adAlignKey(item, i), value: item });
+                }
+            });
+            return blocks;
+        }
+        if (data && typeof data === 'object') {
+            const consumed = new Set();
+            Object.keys(data).forEach(k => {
+                const v = data[k];
+                const p = path ? path + '.' + k : k;
+                if (!Array.isArray(v)) return;
+                const isAdArr = ARRAY_KEYS.includes(k) || v.some(looksLikeAd) || (v[0] && Array.isArray(v[0].ads));
+                if (!isAdArr) return;
+                consumed.add(k);
+                v.forEach((item, i) => {
+                    const ip = p + '[' + i + ']';
+                    if (item && Array.isArray(item.ads)) {
+                        item.ads.forEach((ad, ai) => {
+                            blocks.push({ path: ip + '.ads[' + ai + ']', title: adAlignKey(ad, ai), value: ad });
+                        });
+                    } else {
+                        blocks.push({ path: ip, title: adAlignKey(item, i), value: item });
+                    }
+                });
+            });
+            const rest = {};
+            Object.keys(data).forEach(k => { if (!consumed.has(k)) rest[k] = data[k]; });
+            if (Object.keys(rest).length) {
+                blocks.push({ path: path || 'envelope', title: '整包其它字段', value: rest, envelope: true });
+            }
+            return blocks;
+        }
+        blocks.push({ path: path || 'root', title: 'root', value: data });
+        return blocks;
+    }
+
+    function alignBlockLists(refBlocks, actBlocks, alignAds) {
+        const pairs = [];
+        if (!alignAds) {
+            const n = Math.max(refBlocks.length, actBlocks.length);
+            for (let i = 0; i < n; i++) {
+                pairs.push({
+                    title: (refBlocks[i] || actBlocks[i]).title,
+                    path: (refBlocks[i] || actBlocks[i]).path,
+                    ref: refBlocks[i] ? refBlocks[i].value : undefined,
+                    act: actBlocks[i] ? actBlocks[i].value : undefined
+                });
+            }
+            return pairs;
+        }
+        const usedAct = new Set();
+        refBlocks.forEach((rb, i) => {
+            let ai = actBlocks.findIndex((ab, j) => !usedAct.has(j) && ab.title === rb.title);
+            if (ai < 0) ai = actBlocks.findIndex((ab, j) => !usedAct.has(j) && ab.path === rb.path);
+            if (ai >= 0) usedAct.add(ai);
+            pairs.push({
+                title: rb.title,
+                path: rb.path,
+                ref: rb.value,
+                act: ai >= 0 ? actBlocks[ai].value : undefined
+            });
+        });
+        actBlocks.forEach((ab, j) => {
+            if (usedAct.has(j)) return;
+            pairs.push({ title: ab.title, path: ab.path, ref: undefined, act: ab.value });
+        });
+        return pairs;
+    }
+
+    function stableStringify(val) {
+        return JSON.stringify(val, null, 2);
+    }
+
+    function lineLcs(a, b) {
+        const n = a.length, m = b.length;
+        if (n * m > 800000) {
+            const rows = [];
+            const L = Math.max(n, m);
+            for (let i = 0; i < L; i++) {
+                const Lline = i < n ? a[i] : null;
+                const Rline = i < m ? b[i] : null;
+                let type = 'same';
+                if (Lline == null) type = 'add';
+                else if (Rline == null) type = 'del';
+                else if (Lline !== Rline) type = 'chg';
+                rows.push({ L: Lline, R: Rline, type });
+            }
+            return rows;
+        }
+        const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+        for (let i = 1; i <= n; i++) {
+            for (let j = 1; j <= m; j++) {
+                dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+            }
+        }
+        const rows = [];
+        let i = n, j = m;
+        while (i > 0 || j > 0) {
+            if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
+                rows.push({ L: a[i - 1], R: b[j - 1], type: 'same' });
+                i--; j--;
+            } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+                rows.push({ L: null, R: b[j - 1], type: 'add' });
+                j--;
+            } else {
+                rows.push({ L: a[i - 1], R: null, type: 'del' });
+                i--;
+            }
+        }
+        rows.reverse();
+        const merged = [];
+        for (let k = 0; k < rows.length; k++) {
+            if (rows[k].type === 'del' && rows[k + 1] && rows[k + 1].type === 'add') {
+                merged.push({ L: rows[k].L, R: rows[k + 1].R, type: 'chg' });
+                k++;
+            } else merged.push(rows[k]);
+        }
+        return merged;
+    }
+
+    function changedTopKeys(a, b) {
+        const keys = new Set([
+            ...((a && typeof a === 'object' && !Array.isArray(a)) ? Object.keys(a) : []),
+            ...((b && typeof b === 'object' && !Array.isArray(b)) ? Object.keys(b) : [])
+        ]);
+        const out = [];
+        keys.forEach(k => {
+            const sa = a && typeof a === 'object' ? JSON.stringify(a[k]) : undefined;
+            const sb = b && typeof b === 'object' ? JSON.stringify(b[k]) : undefined;
+            if (sa !== sb) out.push(k);
+        });
+        return out;
+    }
+
+    function renderPane(lab, lines) {
+        const body = !lines.length
+            ? '<div class="dl-line empty">（缺失）</div>'
+            : lines.map(x => '<div class="dl-line ' + x.cls + '">' + (x.text == null ? '<span class="empty"> </span>' : escapeHtml(x.text)) + '</div>').join('');
+        return '<div class="block-pane"><div class="pane-lab">' + escapeHtml(lab) + '</div>' + body + '</div>';
+    }
+
+    function formatMixerJson(id) {
+        const el = document.getElementById(id);
+        const t = el.value.trim();
+        if (!t) { toast('内容为空', false); return; }
+        try {
+            const obj = unwrapMixerPayload(tryParseJsonLoose(t));
+            el.value = JSON.stringify(obj, null, 4);
+            toast('已格式化');
+        } catch (e) {
+            toast('JSON 解析失败：' + e.message, false);
+        }
+    }
+
+    function compareMixerAction() {
+        const refText = document.getElementById('mixer-ref-input').value.trim();
+        const actText = document.getElementById('mixer-act-input').value.trim();
+        if (!refText || !actText) { toast('请填写参考与待测 JSON', false); return; }
+        let refObj, actObj;
+        try { refObj = unwrapMixerPayload(tryParseJsonLoose(refText)); }
+        catch (e) { toast('参考 JSON 无效：' + e.message, false); return; }
+        try { actObj = unwrapMixerPayload(tryParseJsonLoose(actText)); }
+        catch (e) { toast('待测 JSON 无效：' + e.message, false); return; }
+
+        const opt = {
+            ignoreVast: document.getElementById('mixer-ignore-vast').checked,
+            ignoreEmpty: document.getElementById('mixer-ignore-empty').checked,
+            ignoreNoise: document.getElementById('mixer-ignore-noise').checked,
+            onlyDiff: document.getElementById('mixer-only-diff').checked,
+            alignAds: document.getElementById('mixer-align-ads').checked
+        };
+
+        const refBlocks = collectBlocks(refObj, '');
+        const actBlocks = collectBlocks(actObj, '');
+        const pairs = alignBlockLists(refBlocks, actBlocks, opt.alignAds);
+
+        let same = 0, diff = 0, missAct = 0, missRef = 0;
+        lastMixerBlocks = pairs.map(p => {
+            const r = p.ref === undefined ? undefined : sanitizeNode(p.ref, opt);
+            const a = p.act === undefined ? undefined : sanitizeNode(p.act, opt);
+            const rText = r === undefined ? '' : stableStringify(r);
+            const aText = a === undefined ? '' : stableStringify(a);
+            let status, cls;
+            if (p.ref === undefined) { status = '仅待测有'; cls = 'err'; missRef++; }
+            else if (p.act === undefined) { status = '仅参考有'; cls = 'err'; missAct++; }
+            else if (rText === aText) { status = '一致'; cls = 'match'; same++; }
+            else { status = '不一致'; cls = 'warn'; diff++; }
+            const lcs = lineLcs(rText ? rText.split('\n') : [], aText ? aText.split('\n') : []);
+            return {
+                title: p.title,
+                path: p.path,
+                status, cls,
+                keys: changedTopKeys(r, a),
+                lcs, rText, aText
+            };
+        });
+
+        document.getElementById('mixer-filter').style.display = 'block';
+        renderMixerBlocks();
+        document.getElementById('mixer-summary').innerHTML =
+            '<span class="stat-pill muted">块 ' + lastMixerBlocks.length + '</span>' +
+            '<span class="stat-pill ok">一致 ' + same + '</span>' +
+            '<span class="stat-pill warn">不一致 ' + diff + '</span>' +
+            '<span class="stat-pill err">仅参考有 ' + missAct + '</span>' +
+            '<span class="stat-pill err">仅待测有 ' + missRef + '</span>';
+
+        lastMixerCompareText = lastMixerBlocks.map(b => {
+            return '## ' + b.path + ' | ' + b.title + ' [' + b.status + ']\n差异字段: ' + (b.keys.join(', ') || '-') +
+                '\n--- 参考 ---\n' + (b.rText || '(缺失)') + '\n--- 待测 ---\n' + (b.aText || '(缺失)');
+        }).join('\n\n');
+        toast('比对完成：' + (diff + missAct + missRef) + ' 个块有差异');
+    }
+
+    function renderMixerBlocks() {
+        const onlyDiff = document.getElementById('mixer-only-diff').checked;
+        const q = (document.getElementById('mixer-filter').value || '').trim().toLowerCase();
+        const box = document.getElementById('mixer-results');
+        const shown = lastMixerBlocks.filter(b => {
+            if (onlyDiff && b.cls === 'match') return false;
+            if (!q) return true;
+            const hay = (b.path + ' ' + b.title + ' ' + b.keys.join(' ')).toLowerCase();
+            return hay.includes(q);
+        });
+        if (!shown.length) {
+            box.innerHTML = '<div class="result-row">没有需要展示的块（两边对应块完全一致）</div>';
+            return;
+        }
+        box.innerHTML = shown.map(b => {
+            const chips = b.keys.length
+                ? '<div class="block-keys">改动字段：' + b.keys.map(k => '<code>' + escapeHtml(k) + '</code>').join('') + '</div>'
+                : '';
+            const left = [];
+            const right = [];
+            b.lcs.forEach(row => {
+                if (row.type === 'same') {
+                    left.push({ text: row.L, cls: 'same' });
+                    right.push({ text: row.R, cls: 'same' });
+                } else if (row.type === 'chg') {
+                    left.push({ text: row.L, cls: 'chg' });
+                    right.push({ text: row.R, cls: 'chg' });
+                } else if (row.type === 'del') {
+                    left.push({ text: row.L, cls: 'del' });
+                    right.push({ text: '', cls: 'del' });
+                } else {
+                    left.push({ text: '', cls: 'add' });
+                    right.push({ text: row.R, cls: 'add' });
+                }
+            });
+            return '<div class="block-card ' + b.cls + '"><div class="block-head"><strong>' + escapeHtml(b.title) + '</strong>' +
+                '<span class="chip">' + escapeHtml(b.status) + '</span>' +
+                '<span style="color:var(--text-secondary);font-size:0.78rem">' + escapeHtml(b.path) + '</span>' +
+                chips + '</div><div class="block-grid">' + renderPane('参考', left) + renderPane('待测', right) + '</div></div>';
+        }).join('');
+    }
+
+    function clearMixerTab() {
+        ['mixer-ref-input', 'mixer-act-input', 'mixer-filter'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        document.getElementById('mixer-results').innerHTML = '';
+        document.getElementById('mixer-summary').innerHTML = '';
+        document.getElementById('mixer-filter').style.display = 'none';
+        lastMixerCompareText = '';
+        lastMixerBlocks = [];
+    }
+
+    document.getElementById('btn-mixer-compare').addEventListener('click', compareMixerAction);
+    document.getElementById('btn-copy-mixer').addEventListener('click', () => {
+        if (!lastMixerCompareText) { toast('请先执行比对', false); return; }
+        copyText(lastMixerCompareText);
+    });
+    document.getElementById('btn-clear-mixer').addEventListener('click', clearMixerTab);
+    document.getElementById('btn-mixer-format-ref').addEventListener('click', () => formatMixerJson('mixer-ref-input'));
+    document.getElementById('btn-mixer-format-act').addEventListener('click', () => formatMixerJson('mixer-act-input'));
+    document.getElementById('btn-mixer-swap').addEventListener('click', () => {
+        const a = document.getElementById('mixer-ref-input');
+        const b = document.getElementById('mixer-act-input');
+        const t = a.value; a.value = b.value; b.value = t;
+        toast('已互换');
+    });
+    document.getElementById('btn-mixer-from-json').addEventListener('click', () => {
+        const src = document.getElementById('json-input').value.trim();
+        if (!src) { toast('JSON 页没有内容', false); return; }
+        document.getElementById('mixer-ref-input').value = src;
+        toast('已从 JSON 页带入参考');
+    });
+    document.getElementById('mixer-only-diff').addEventListener('change', () => { if (lastMixerBlocks.length) renderMixerBlocks(); });
+    document.getElementById('mixer-filter').addEventListener('input', () => { if (lastMixerBlocks.length) renderMixerBlocks(); });
+
+
     // Global shortcuts
     document.addEventListener('keydown', (e) => {
         const meta = e.ctrlKey || e.metaKey;
@@ -2032,6 +2574,7 @@ name</textarea>
         const active = document.querySelector('.tab-content.active')?.id;
         if (active === 'url-tab') parseUrlAction();
         else if (active === 'json-tab') extractJsonAction();
+        else if (active === 'mixer-tab') compareMixerAction();
     });
 
     // Init
