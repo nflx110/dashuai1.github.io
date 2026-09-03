@@ -241,7 +241,8 @@
 
         .input-wrap textarea,
         .input-wrap input[type="text"],
-        .input-wrap input[type="number"] {
+        .input-wrap input[type="number"],
+        .input-wrap input[type="datetime-local"] {
             width: 100%;
             padding: 10px 40px 10px 12px;
             border: 1px solid var(--border-color);
@@ -651,6 +652,39 @@
             border-top: 1px dashed var(--border-color);
         }
 
+        .sdk-param {
+            display: flex;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            margin-bottom: 6px;
+            background: #fff;
+            word-break: break-all;
+            font-size: 0.84rem;
+        }
+        .sdk-param-key {
+            font-weight: 700;
+            min-width: 88px;
+            color: var(--primary-color);
+            font-family: ui-monospace, Menlo, monospace;
+        }
+        .sdk-param-right { flex: 1; min-width: 0; }
+        .sdk-param-value.clickable {
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: underline dotted;
+        }
+        .sdk-nested { margin-top: 8px; padding-left: 8px; border-left: 2px solid var(--border-color); }
+        .jv-item { margin-left: 1.1em; font-family: ui-monospace, Menlo, monospace; font-size: 0.82rem; line-height: 1.45; }
+        .jv-key { color: #c2410c; }
+        .jv-string { color: #15803d; }
+        .jv-number { color: #db2777; }
+        .jv-boolean { color: #0369a1; font-weight: 700; }
+        .jv-null { color: #94a3b8; font-style: italic; }
+        .jv-toggle { cursor: pointer; user-select: none; color: var(--text-secondary); margin-right: 4px; }
+        .jv-collapsed > .jv-children { display: none; }
+
 
         .check-row {
             display: flex;
@@ -809,6 +843,7 @@
         <div class="tabs-wrap">
             <nav class="tabs" role="tablist" aria-label="功能分区">
                 <button type="button" class="tab-button active" role="tab" aria-selected="true" data-tab="url-tab"><i class="fas fa-link"></i> URL</button>
+                <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="sdk-tab"><i class="fas fa-unlock-keyhole"></i> 联盟解密</button>
                 <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="json-tab"><i class="fas fa-braces"></i> JSON</button>
                 <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="mixer-tab"><i class="fas fa-code-compare"></i> Mixer</button>
                 <button type="button" class="tab-button" role="tab" aria-selected="false" data-tab="time-tab"><i class="fas fa-clock"></i> 时间</button>
@@ -876,6 +911,44 @@
                             <button type="button" class="btn secondary" id="btn-copy-compare"><i class="fas fa-copy"></i> 复制比对</button>
                         </div>
                         <div id="comparison-results" class="result-box" aria-live="polite"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="sdk-tab" class="tab-content" role="tabpanel">
+                <div class="layout-grid">
+                    <div class="card">
+                        <h2 class="card-title"><i class="fas fa-unlock-keyhole"></i> 请求参数解密 <span class="hint"><span class="kbd">⌘/Ctrl</span>+<span class="kbd">Enter</span></span></h2>
+                        <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:10px">按联盟 SDK 规则解密：<code>dvi</code> 走 Base64URL；<code>ee</code> 用 <code>rid</code> 后 20 位 XOR；嵌套 <code>e</code> 用固定密钥 XOR。点参数值可展开下一层。</p>
+                        <div class="form-group">
+                            <label for="sdk-url-input">加密的请求 URL</label>
+                            <div class="input-wrap">
+                                <textarea id="sdk-url-input" placeholder="粘贴带 rid、ee、dvi 等参数的请求 URL" spellcheck="false"></textarea>
+                                <button type="button" class="clear-in" data-clear="sdk-url-input" aria-label="清空"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="btn" id="btn-sdk-decrypt"><i class="fas fa-wand-magic-sparkles"></i> 解密</button>
+                            <button type="button" class="btn secondary" id="btn-sdk-from-url"><i class="fas fa-arrow-up"></i> 从 URL 页带入</button>
+                            <button type="button" class="btn ghost" id="btn-sdk-clear"><i class="fas fa-broom"></i> 清空</button>
+                        </div>
+                        <div id="sdk-url-msg" style="margin-top:8px;font-size:0.82rem;color:var(--danger-color)"></div>
+                        <div id="sdk-params" class="result-box" aria-live="polite"></div>
+                    </div>
+                    <div class="card">
+                        <h2 class="card-title"><i class="fas fa-file-shield"></i> 响应体解密</h2>
+                        <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:10px">Base64 解码后，与请求 <code>rid</code> 后 20 位做 XOR，再按 JSON 树展示。</p>
+                        <div class="form-group">
+                            <label for="sdk-resp-input">加密的响应内容</label>
+                            <div class="input-wrap">
+                                <textarea id="sdk-resp-input" placeholder="粘贴加密响应（Base64）" spellcheck="false"></textarea>
+                                <button type="button" class="clear-in" data-clear="sdk-resp-input" aria-label="清空"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="btn-row">
+                            <button type="button" class="btn secondary" id="btn-sdk-copy-resp"><i class="fas fa-copy"></i> 复制解密结果</button>
+                        </div>
+                        <div id="sdk-response" class="result-box" aria-live="polite"></div>
                     </div>
                 </div>
             </section>
@@ -976,6 +1049,35 @@ name</textarea>
                     <div class="card layout-span-2">
                         <h2 class="card-title"><i class="fas fa-code-compare"></i> Mixer Response 对比 <span class="hint"><span class="kbd">⌘/Ctrl</span>+<span class="kbd">Enter</span></span></h2>
                         <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:8px">按<strong>广告块 / 数组项</strong>整段并排对比，差异行高亮。不再拆成单个字段。</p>
+                        <div class="decode-box" style="margin-top:0;padding-top:0;border-top:none;margin-bottom:12px">
+                            <h3 class="card-title" style="font-size:0.95rem;margin-bottom:10px"><i class="fas fa-server"></i> 双环境拉取（测试 IP / 线上 IP）</h3>
+                            <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:10px">把 Mixer URL 的 host 分别换成两个 IP 后请求，结果填入上方参考 / 待测。若在普通网页打开可能被 CORS 拦住；在扩展里打开通常可用。</p>
+                            <div class="form-group">
+                                <label for="mixer-live-url">Mixer URL</label>
+                                <div class="input-wrap">
+                                    <input type="text" id="mixer-live-url" placeholder="http://host/mixer?...">
+                                    <button type="button" class="clear-in" data-clear="mixer-live-url" aria-label="清空" style="top:8px"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="mixer-url-error" style="color:var(--danger-color);font-size:0.78rem;margin-top:4px"></div>
+                            </div>
+                            <div class="split-inline" style="margin-bottom:10px">
+                                <div class="form-group" style="flex:1;margin-bottom:0">
+                                    <label for="mixer-test-ip">测试环境 IP</label>
+                                    <div class="input-wrap">
+                                        <input type="text" id="mixer-test-ip" placeholder="例如 192.168.1.1">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="flex:1;margin-bottom:0">
+                                    <label for="mixer-prod-ip">线上环境 IP</label>
+                                    <div class="input-wrap">
+                                        <input type="text" id="mixer-prod-ip" placeholder="例如 192.168.1.2">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="btn-row" style="margin-top:0">
+                                <button type="button" class="btn secondary sm" id="btn-mixer-fetch"><i class="fas fa-cloud-arrow-down"></i> 拉取并填入</button>
+                            </div>
+                        </div>
                         <div class="check-row">
                             <label><input type="checkbox" id="mixer-only-diff" checked> 只看有差异的块</label>
                             <label><input type="checkbox" id="mixer-align-ads" checked> 按广告位对齐数组</label>
@@ -1034,16 +1136,39 @@ name</textarea>
                     <div class="card">
                         <h2 class="card-title"><i class="fas fa-hourglass-half"></i> Unix 时间戳</h2>
                         <div class="form-group">
+                            <label for="timezone-select">显示时区</label>
+                            <select id="timezone-select" class="conversion-select">
+                                <option value="local">本地时区</option>
+                                <option value="UTC">UTC</option>
+                                <option value="Asia/Shanghai">Asia/Shanghai (UTC+8)</option>
+                                <option value="Asia/Tokyo">Asia/Tokyo (UTC+9)</option>
+                                <option value="America/New_York">America/New_York</option>
+                                <option value="America/Los_Angeles">America/Los_Angeles</option>
+                                <option value="Europe/London">Europe/London</option>
+                                <option value="Europe/Paris">Europe/Paris</option>
+                                <option value="Asia/Dubai">Asia/Dubai</option>
+                                <option value="Asia/Singapore">Asia/Singapore</option>
+                                <option value="Australia/Sydney">Australia/Sydney</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="timestamp-input">秒或毫秒时间戳</label>
                             <div class="input-wrap">
                                 <input type="number" id="timestamp-input" placeholder="如 1700000000 或 1700000000000" step="any">
                                 <button type="button" class="clear-in" data-clear="timestamp-input" aria-label="清空"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label for="datetime-input">日期时间（转时间戳）</label>
+                            <div class="input-wrap">
+                                <input type="datetime-local" id="datetime-input">
+                            </div>
+                        </div>
                         <div class="btn-row">
-                            <button type="button" class="btn" id="btn-convert-ts"><i class="fas fa-rotate"></i> 转换</button>
+                            <button type="button" class="btn" id="btn-convert-ts"><i class="fas fa-rotate"></i> 时间戳 → 时间</button>
+                            <button type="button" class="btn secondary" id="btn-date-to-ts"><i class="fas fa-calendar"></i> 日期 → 时间戳</button>
                             <button type="button" class="btn secondary" id="btn-now-ts"><i class="fas fa-bolt"></i> 填入当前时间</button>
-                            <button type="button" class="btn secondary" id="btn-copy-ts"><i class="fas fa-copy"></i> 复制</button>
+                            <button type="button" class="btn ghost" id="btn-copy-ts"><i class="fas fa-copy"></i> 复制</button>
                         </div>
                         <div id="timestamp-result" class="result-box"></div>
                     </div>
@@ -1060,6 +1185,17 @@ name</textarea>
                                 <textarea id="b64-input" placeholder="在此粘贴…" spellcheck="false"></textarea>
                                 <button type="button" class="clear-in" data-clear="b64-input" aria-label="清空"><i class="fas fa-times"></i></button>
                             </div>
+                        </div>
+                        <div class="check-row">
+                            <label><input type="checkbox" id="b64-url-safe"> URL 安全模式（Base64URL）</label>
+                        </div>
+                        <div class="form-group">
+                            <label for="b64-format">编码换行</label>
+                            <select id="b64-format" class="conversion-select">
+                                <option value="none">无换行（标准）</option>
+                                <option value="mime">MIME（每 76 字符）</option>
+                                <option value="pem">PEM（每 64 字符）</option>
+                            </select>
                         </div>
                         <div class="btn-row">
                             <button type="button" class="btn" id="btn-b64-enc"><i class="fas fa-lock"></i> 编码</button>
@@ -1186,7 +1322,7 @@ name</textarea>
         ]}
     ];
 
-    const PRESET_URL_PARAMS = ['ee', 'user_ip', 'utm_source', 'utm_medium', 'utm_campaign', 'id', 'ref'];
+    const PRESET_URL_PARAMS = ['ee', 'dvi', 'e', 'rid', 'user_ip', 'utm_source', 'utm_medium', 'utm_campaign', 'id', 'ref'];
     const URL_MULTI_ALL = '';
 
     let modalSnapshotUrlParams = null;
@@ -1197,6 +1333,10 @@ name</textarea>
     let lastB64Text = '';
     let lastEncText = '';
     let lastDecodeText = '';
+    let lastSdkRespText = '';
+    const UNION_E_KEY = 'e84584df1113ff82bccbdfef9b69c2f3';
+    const sdkValueStore = Object.create(null);
+    let sdkStoreSeq = 0;
     /** @type {Record<string,string>} */
     let lastUrlParamValues = {};
 
@@ -1508,26 +1648,99 @@ name</textarea>
         }
     });
 
-    function tryDecodeTrackingPayload(raw) {
+    function xorLatin1(binStr, key) {
+        if (!binStr || !key) return '';
+        let result = '';
+        for (let i = 0; i < binStr.length; i++) {
+            result += String.fromCharCode(binStr.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+        }
+        try { return decodeURIComponent(escape(result)); } catch { return result; }
+    }
+
+    function base64UrlSafeDecode(str) {
+        let base64 = String(str).replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4) base64 += '=';
+        return decodeURIComponent(escape(atob(base64)));
+    }
+
+    function tryAtobUtf8(str) {
+        const compact = String(str).replace(/\s/g, '');
+        let b64 = compact.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) b64 += '=';
+        const bin = atob(b64);
+        try { return decodeURIComponent(escape(bin)); } catch { return bin; }
+    }
+
+    function getRidFromParams(params) {
+        return String((params && (params.rid || params.RID)) || lastUrlParamValues.rid || lastUrlParamValues.RID || '').trim();
+    }
+
+    function tryUnionDecrypt(key, value, rid, level) {
+        const k = String(key || '').toLowerCase();
+        const raw = String(value || '').trim();
+        if (!raw) return null;
+        try {
+            if (k === 'dvi') {
+                return { text: base64UrlSafeDecode(raw), steps: ['Base64URL'] };
+            }
+            if (k === 'ee') {
+                if (!rid || rid.length < 20) return { error: '缺少 rid，无法 XOR 解密 ee' };
+                return { text: xorLatin1(atob(raw), rid.slice(-20)), steps: ['Base64', 'XOR(rid后20位)'] };
+            }
+            if (k === 'e' && level >= 1) {
+                return { text: xorLatin1(atob(raw), UNION_E_KEY), steps: ['Base64', 'XOR(固定密钥)'] };
+            }
+        } catch (e) {
+            return { error: '解密失败：' + (e.message || e) };
+        }
+        return null;
+    }
+
+    function parseQueryPairs(text) {
+        const obj = {};
+        String(text || '').split('&').forEach(pair => {
+            if (!pair) return;
+            const eq = pair.indexOf('=');
+            const k = eq >= 0 ? pair.slice(0, eq) : pair;
+            const v = eq >= 0 ? pair.slice(eq + 1) : '';
+            if (!k) return;
+            try { obj[decodeURIComponent(k)] = decodeURIComponent(v.replace(/\+/g, ' ')); }
+            catch { obj[k] = v; }
+        });
+        return obj;
+    }
+
+    function storeSdkVal(v) {
+        const id = 'v' + (++sdkStoreSeq);
+        sdkValueStore[id] = v;
+        return id;
+    }
+
+    function tryDecodeTrackingPayload(raw, paramKey) {
         const steps = [];
         let s = String(raw).trim();
-        for (let round = 0; round < 8; round++) {
-            let changed = false;
-            try {
-                const t = decodeURIComponent(s.replace(/\+/g, '%20'));
-                if (t !== s) { s = t; steps.push('URL解码'); changed = true; }
-            } catch { break; }
-            if (!changed) break;
-        }
-        const compact = s.replace(/\s/g, '');
-        if (/^[A-Za-z0-9+/=_-]+$/.test(compact) && compact.length >= 8) {
-            let b64 = compact.replace(/-/g, '+').replace(/_/g, '/');
-            while (b64.length % 4) b64 += '=';
-            try {
-                const bin = atob(b64);
-                s = decodeURIComponent(escape(bin));
-                steps.push('Base64→UTF-8');
-            } catch { /* 非 Base64 */ }
+        const rid = getRidFromParams(lastUrlParamValues);
+        const union = tryUnionDecrypt(paramKey, s, rid, paramKey === 'e' ? 1 : 0);
+        if (union && union.error) return { text: union.error, steps: ['联盟解密失败'] };
+        if (union && union.text != null) {
+            s = union.text;
+            steps.push(...union.steps);
+        } else {
+            for (let round = 0; round < 8; round++) {
+                let changed = false;
+                try {
+                    const t = decodeURIComponent(s.replace(/\+/g, '%20'));
+                    if (t !== s) { s = t; steps.push('URL解码'); changed = true; }
+                } catch { break; }
+                if (!changed) break;
+            }
+            const compact = s.replace(/\s/g, '');
+            if (/^[A-Za-z0-9+/=_-]+$/.test(compact) && compact.length >= 8) {
+                try {
+                    s = tryAtobUtf8(compact);
+                    steps.push('Base64→UTF-8');
+                } catch { /* 非 Base64 */ }
+            }
         }
         try {
             const j = JSON.parse(s);
@@ -1538,17 +1751,18 @@ name</textarea>
         return { text: s, steps };
     }
 
-    function runDecodePipeline() {
+    function runDecodePipeline(paramKey) {
         let raw = document.getElementById('decode-input').value.trim();
         const kv = raw.match(/^([a-zA-Z0-9_]+)=(.+)$/);
         if (kv) {
+            if (!paramKey) paramKey = kv[1];
             raw = kv[2].trim();
             document.getElementById('decode-input').value = raw;
         }
         const out = document.getElementById('decode-output');
         const stepsEl = document.getElementById('decode-steps');
         if (!raw) { toast('请先粘贴密文', false); return; }
-        const r = tryDecodeTrackingPayload(raw);
+        const r = tryDecodeTrackingPayload(raw, paramKey);
         lastDecodeText = r.text;
         out.innerHTML = '<pre style="white-space:pre-wrap;margin:0;font:inherit;max-height:42vh;overflow:auto">' + escapeHtml(r.text) + '</pre>';
         stepsEl.textContent = '处理链：' + r.steps.join(' → ');
@@ -1561,7 +1775,7 @@ name</textarea>
             const key = dec.getAttribute('data-param');
             const v = lastUrlParamValues[key] ?? '';
             document.getElementById('decode-input').value = v;
-            runDecodePipeline();
+            runDecodePipeline(key);
             document.getElementById('decode-output').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             return;
         }
@@ -1643,6 +1857,10 @@ name</textarea>
             const keys = new Set([...pa.keys(), ...pb.keys()]);
             const lines = [];
             let html = '<div style="font-weight:700;margin-bottom:8px">比对结果</div>';
+            const hostSame = ua.host === ub.host;
+            html += '<div class="result-row ' + (hostSame ? 'match' : 'warn') + '"><strong>域名</strong> <small>(' + (hostSame ? '一致' : '不一致') + ')</small>' +
+                '<div>左: ' + escapeHtml(ua.origin + ua.pathname) + '</div><div>右: ' + escapeHtml(ub.origin + ub.pathname) + '</div></div>';
+            lines.push('域名: 左=' + ua.origin + ua.pathname + ' 右=' + ub.origin + ub.pathname);
             for (const key of keys) {
                 const va = pa.get(key);
                 const vb = pb.get(key);
@@ -1702,7 +1920,7 @@ name</textarea>
         
         const v = lastUrlParamValues[selectedKey];
         document.getElementById('decode-input').value = v;
-        runDecodePipeline();
+        runDecodePipeline(selectedKey);
         toast(`已提取参数 "${selectedKey}" 的值`);
     });
     document.getElementById('btn-decode-copy').addEventListener('click', () => {
@@ -1716,6 +1934,183 @@ name</textarea>
     document.getElementById('btn-copy-compare').addEventListener('click', () => {
         if (!lastCompareText) { toast('请先执行比对', false); return; }
         copyText(lastCompareText);
+    });
+
+    function parseUrlQueryLoose(url) {
+        const q = String(url).split('?')[1] || '';
+        return parseQueryPairs(q);
+    }
+
+    function renderJsonTree(value, key, level) {
+        const wrap = document.createElement('div');
+        wrap.className = 'jv-item';
+        if (key != null) {
+            const ks = document.createElement('span');
+            ks.className = 'jv-key';
+            ks.textContent = '"' + key + '": ';
+            wrap.appendChild(ks);
+        }
+        if (value !== null && typeof value === 'object') {
+            const isArr = Array.isArray(value);
+            const toggle = document.createElement('span');
+            toggle.className = 'jv-toggle';
+            toggle.textContent = isArr ? '[−]' : '{−}';
+            wrap.appendChild(toggle);
+            const children = document.createElement('div');
+            children.className = 'jv-children';
+            if (isArr) {
+                value.forEach((item, i) => children.appendChild(renderJsonTree(item, String(i), level + 1)));
+            } else {
+                Object.keys(value).forEach(k => children.appendChild(renderJsonTree(value[k], k, level + 1)));
+            }
+            wrap.appendChild(children);
+            if (level > 0) {
+                wrap.classList.add('jv-collapsed');
+                toggle.textContent = isArr ? '[+]' : '{+}';
+            }
+            toggle.addEventListener('click', () => {
+                wrap.classList.toggle('jv-collapsed');
+                const collapsed = wrap.classList.contains('jv-collapsed');
+                toggle.textContent = collapsed ? (isArr ? '[+]' : '{+}') : (isArr ? '[−]' : '{−}');
+            });
+            return wrap;
+        }
+        const span = document.createElement('span');
+        if (typeof value === 'string') { span.className = 'jv-string'; span.textContent = JSON.stringify(value); }
+        else if (typeof value === 'number') { span.className = 'jv-number'; span.textContent = String(value); }
+        else if (typeof value === 'boolean') { span.className = 'jv-boolean'; span.textContent = String(value); }
+        else { span.className = 'jv-null'; span.textContent = 'null'; }
+        wrap.appendChild(span);
+        return wrap;
+    }
+
+    function renderUnionParamList(params, container, rid, level) {
+        const keys = Object.keys(params).sort();
+        keys.forEach(key => {
+            const row = document.createElement('div');
+            row.className = 'sdk-param';
+            const kEl = document.createElement('div');
+            kEl.className = 'sdk-param-key';
+            kEl.textContent = key;
+            const right = document.createElement('div');
+            right.className = 'sdk-param-right';
+            const vEl = document.createElement('div');
+            vEl.className = 'sdk-param-value';
+            const decryptable = key === 'dvi' || key === 'ee' || (key === 'e' && level >= 1);
+            if (decryptable) {
+                vEl.classList.add('clickable');
+                vEl.textContent = params[key] + '（点击解密）';
+                const sid = storeSdkVal(params[key]);
+                vEl.setAttribute('data-sdk-dec', sid);
+                vEl.setAttribute('data-sdk-key', key);
+                vEl.setAttribute('data-sdk-rid', rid);
+                vEl.setAttribute('data-sdk-level', String(level));
+            } else {
+                vEl.textContent = params[key];
+            }
+            right.appendChild(vEl);
+            row.appendChild(kEl);
+            row.appendChild(right);
+            container.appendChild(row);
+        });
+    }
+
+    function showUnionDecrypted(text, host, rid, level) {
+        host.innerHTML = '';
+        const nested = document.createElement('div');
+        nested.className = 'sdk-nested';
+        const trimmed = String(text || '').trim();
+        try {
+            const json = JSON.parse(trimmed);
+            nested.appendChild(renderJsonTree(json, null, 0));
+            host.appendChild(nested);
+            return;
+        } catch { /* not json */ }
+        if (trimmed.includes('=') && trimmed.includes('&')) {
+            renderUnionParamList(parseQueryPairs(trimmed), nested, rid, level + 1);
+            host.appendChild(nested);
+            return;
+        }
+        const pre = document.createElement('pre');
+        pre.style.cssText = 'white-space:pre-wrap;margin:0;font:inherit';
+        pre.textContent = trimmed;
+        nested.appendChild(pre);
+        host.appendChild(nested);
+    }
+
+    function runUnionSdkDecrypt() {
+        const url = document.getElementById('sdk-url-input').value.trim();
+        const msg = document.getElementById('sdk-url-msg');
+        const box = document.getElementById('sdk-params');
+        const respBox = document.getElementById('sdk-response');
+        const encResp = document.getElementById('sdk-resp-input').value.trim();
+        msg.textContent = '';
+        box.innerHTML = '';
+        respBox.innerHTML = '';
+        lastSdkRespText = '';
+        if (!url) { msg.textContent = '请输入带参数的 URL'; toast('请输入 URL', false); return; }
+        const params = parseUrlQueryLoose(url);
+        const rid = params.rid || params.RID || '';
+        if (!rid) { msg.textContent = '缺少 rid 参数，ee / 响应 XOR 需要它'; }
+        if (!Object.keys(params).length) { msg.textContent = '未解析到查询参数'; toast('没有参数', false); return; }
+        lastUrlParamValues = Object.assign({}, lastUrlParamValues, params);
+        renderUnionParamList(params, box, rid, 0);
+        if (encResp) {
+            try {
+                if (!rid || rid.length < 20) throw new Error('rid 不足 20 位');
+                const decrypted = xorLatin1(atob(encResp.replace(/\s/g, '')), rid.slice(-20));
+                lastSdkRespText = decrypted;
+                const json = JSON.parse(decrypted);
+                respBox.appendChild(renderJsonTree(json, null, 0));
+                toast('请求与响应均已解密');
+            } catch (e) {
+                respBox.innerHTML = '<div class="result-row err">响应解密失败：' + escapeHtml(e.message || String(e)) + '</div>';
+                toast('响应解密失败', false);
+            }
+        } else {
+            toast('请求参数已解析，可点击 ee / dvi 解密');
+        }
+    }
+
+    document.getElementById('sdk-params').addEventListener('click', (e) => {
+        const el = e.target.closest('[data-sdk-dec]');
+        if (!el) return;
+        const right = el.parentElement;
+        const existed = right.querySelector('.sdk-nested');
+        if (existed) {
+            existed.style.display = existed.style.display === 'none' ? 'block' : 'none';
+            return;
+        }
+        const key = el.getAttribute('data-sdk-key');
+        const rid = el.getAttribute('data-sdk-rid') || '';
+        const level = Number(el.getAttribute('data-sdk-level') || '0');
+        const raw = sdkValueStore[el.getAttribute('data-sdk-dec')] || '';
+        const r = tryUnionDecrypt(key, raw, rid, level);
+        if (!r || r.error) { toast((r && r.error) || '无法解密该字段', false); return; }
+        const host = document.createElement('div');
+        right.appendChild(host);
+        showUnionDecrypted(r.text, host, rid, level);
+        toast('已展开 ' + key);
+    });
+
+    document.getElementById('btn-sdk-decrypt').addEventListener('click', runUnionSdkDecrypt);
+    document.getElementById('btn-sdk-from-url').addEventListener('click', () => {
+        const src = document.getElementById('url-input').value.trim();
+        if (!src) { toast('URL 页没有内容', false); return; }
+        document.getElementById('sdk-url-input').value = src;
+        runUnionSdkDecrypt();
+    });
+    document.getElementById('btn-sdk-clear').addEventListener('click', () => {
+        document.getElementById('sdk-url-input').value = '';
+        document.getElementById('sdk-resp-input').value = '';
+        document.getElementById('sdk-url-msg').textContent = '';
+        document.getElementById('sdk-params').innerHTML = '';
+        document.getElementById('sdk-response').innerHTML = '';
+        lastSdkRespText = '';
+    });
+    document.getElementById('btn-sdk-copy-resp').addEventListener('click', () => {
+        if (!lastSdkRespText) { toast('请先解密响应', false); return; }
+        copyText(lastSdkRespText);
     });
 
     // Modal URL params
@@ -2122,6 +2517,61 @@ name</textarea>
         toast('换算完成');
     }
 
+    function formatTimeWithTimezone(date, timezone) {
+        const opts = {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false
+        };
+        if (timezone === 'local') {
+            const offset = -date.getTimezoneOffset();
+            const sign = offset >= 0 ? '+' : '-';
+            const h = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0');
+            const m = String(Math.abs(offset) % 60).padStart(2, '0');
+            return {
+                timeStr: date.toLocaleString('zh-CN', opts),
+                offset: 'UTC' + sign + h + ':' + m
+            };
+        }
+        const tz = timezone === 'UTC' ? 'UTC' : timezone;
+        let offset = 'UTC+00:00';
+        try {
+            const parts = new Intl.DateTimeFormat('en', { timeZone: tz, timeZoneName: 'longOffset' }).formatToParts(date);
+            const p = parts.find(x => x.type === 'timeZoneName');
+            if (p && p.value) offset = p.value.replace('GMT', 'UTC');
+        } catch { /* ignore */ }
+        return {
+            timeStr: date.toLocaleString('zh-CN', Object.assign({}, opts, { timeZone: tz })),
+            offset: offset
+        };
+    }
+
+    function renderTsLines(date) {
+        const tz = document.getElementById('timezone-select').value;
+        const sel = formatTimeWithTimezone(date, tz);
+        const loc = formatTimeWithTimezone(date, 'local');
+        const utc = formatTimeWithTimezone(date, 'UTC');
+        const lines = [
+            '选择时区：' + sel.timeStr + ' (' + sel.offset + ')',
+            '本地：' + loc.timeStr + ' (' + loc.offset + ')',
+            'UTC：' + utc.timeStr + ' (' + utc.offset + ')',
+            '时间戳(秒)：' + Math.floor(date.getTime() / 1000),
+            '时间戳(毫秒)：' + date.getTime(),
+            'ISO：' + date.toISOString()
+        ];
+        document.getElementById('timestamp-result').innerHTML =
+            lines.map(l => '<div class="result-row"><div>' + escapeHtml(l) + '</div></div>').join('');
+        lastTsText = lines.join('\n');
+        return lines;
+    }
+
+    function fillDatetimeLocal(date) {
+        const pad = n => String(n).padStart(2, '0');
+        document.getElementById('datetime-input').value =
+            date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) +
+            'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+    }
+
     function convertTsAction() {
         const v = parseFloat(document.getElementById('timestamp-input').value);
         const out = document.getElementById('timestamp-result');
@@ -2132,19 +2582,34 @@ name</textarea>
         }
         const ms = v > 1e12 ? v : v * 1000;
         const d = new Date(ms);
-        const iso = d.toISOString();
-        const local = d.toLocaleString('zh-CN', { hour12: false });
-        const lines = ['本地：' + local, 'ISO：' + iso, '毫秒：' + Math.round(ms)];
-        out.innerHTML = lines.map(l => '<div class="result-row"><div>' + escapeHtml(l) + '</div></div>').join('');
-        lastTsText = lines.join('\n');
+        fillDatetimeLocal(d);
+        renderTsLines(d);
         toast('转换完成');
+    }
+
+    function convertDateToTsAction() {
+        const val = document.getElementById('datetime-input').value;
+        if (!val) { toast('请选择日期时间', false); return; }
+        const d = new Date(val);
+        if (Number.isNaN(d.getTime())) { toast('日期无效', false); return; }
+        document.getElementById('timestamp-input').value = String(Math.floor(d.getTime() / 1000));
+        renderTsLines(d);
+        toast('已转为时间戳');
     }
 
     document.getElementById('btn-convert-time').addEventListener('click', convertTimeAction);
     document.getElementById('btn-convert-ts').addEventListener('click', convertTsAction);
+    document.getElementById('btn-date-to-ts').addEventListener('click', convertDateToTsAction);
     document.getElementById('btn-now-ts').addEventListener('click', () => {
-        document.getElementById('timestamp-input').value = String(Date.now());
-        convertTsAction();
+        const now = new Date();
+        document.getElementById('timestamp-input').value = String(Math.floor(now.getTime() / 1000));
+        fillDatetimeLocal(now);
+        renderTsLines(now);
+        toast('已填入当前时间');
+    });
+    document.getElementById('timezone-select').addEventListener('change', () => {
+        const v = parseFloat(document.getElementById('timestamp-input').value);
+        if (!Number.isNaN(v)) convertTsAction();
     });
     document.getElementById('btn-copy-time').addEventListener('click', () => {
         if (!lastTimeText) { toast('请先转换', false); return; }
@@ -2156,11 +2621,29 @@ name</textarea>
     });
 
     // Codec tab
+    function toBase64URL(b64) {
+        return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+    function fromBase64URL(text) {
+        let b64 = text.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4) b64 += '=';
+        return b64;
+    }
+    function addB64LineBreaks(b64, format) {
+        if (format === 'none') return b64;
+        const n = format === 'mime' ? 76 : 64;
+        const lines = [];
+        for (let i = 0; i < b64.length; i += n) lines.push(b64.slice(i, i + n));
+        return lines.join('\n');
+    }
+
     document.getElementById('btn-b64-enc').addEventListener('click', () => {
         const t = document.getElementById('b64-input').value;
         try {
-            const b = btoa(unescape(encodeURIComponent(t)));
-            document.getElementById('b64-output').innerHTML = '<div class="result-row match"><div>' + escapeHtml(b) + '</div></div>';
+            let b = btoa(unescape(encodeURIComponent(t)));
+            if (document.getElementById('b64-url-safe').checked) b = toBase64URL(b);
+            b = addB64LineBreaks(b, document.getElementById('b64-format').value);
+            document.getElementById('b64-output').innerHTML = '<div class="result-row match"><pre style="white-space:pre-wrap;margin:0;font:inherit">' + escapeHtml(b) + '</pre></div>';
             lastB64Text = b;
             toast('Base64 编码完成');
         } catch (e) {
@@ -2169,14 +2652,19 @@ name</textarea>
         }
     });
     document.getElementById('btn-b64-dec').addEventListener('click', () => {
-        const t = document.getElementById('b64-input').value.trim().replace(/\s/g, '');
+        let t = document.getElementById('b64-input').value.trim().replace(/[\r\n\s]/g, '');
         try {
+            if ((t.includes('-') || t.includes('_')) && !t.includes('+') && !t.includes('/')) {
+                t = fromBase64URL(t);
+            } else if (document.getElementById('b64-url-safe').checked) {
+                t = fromBase64URL(t);
+            }
             const s = decodeURIComponent(escape(atob(t)));
             document.getElementById('b64-output').innerHTML = '<div class="result-row"><pre style="white-space:pre-wrap;margin:0;font:inherit">' + escapeHtml(s) + '</pre></div>';
             lastB64Text = s;
             toast('解码完成');
         } catch (e) {
-            document.getElementById('b64-output').innerHTML = '<div class="result-row err">解码失败，请确认输入为标准 Base64</div>';
+            document.getElementById('b64-output').innerHTML = '<div class="result-row err">解码失败，请确认输入为标准 Base64 / Base64URL</div>';
             toast('解码失败', false);
         }
     });
@@ -2563,6 +3051,64 @@ name</textarea>
         document.getElementById('mixer-ref-input').value = src;
         toast('已从 JSON 页带入参考');
     });
+
+    function validateMixerLiveUrl(url) {
+        if (!url) return { valid: false, message: 'URL 不能为空' };
+        try {
+            const u = new URL(url);
+            if (u.protocol !== 'http:' && u.protocol !== 'https:') return { valid: false, message: '必须以 http:// 或 https:// 开头' };
+            if (!u.pathname.toLowerCase().includes('/mixer')) return { valid: false, message: '路径必须包含 /mixer' };
+            return { valid: true, message: '' };
+        } catch {
+            return { valid: false, message: 'URL 格式不正确' };
+        }
+    }
+
+    document.getElementById('mixer-live-url').addEventListener('input', () => {
+        const v = document.getElementById('mixer-live-url').value.trim();
+        const err = document.getElementById('mixer-url-error');
+        if (!v) { err.textContent = ''; return; }
+        const r = validateMixerLiveUrl(v);
+        err.textContent = r.valid ? '' : r.message;
+    });
+
+    document.getElementById('btn-mixer-fetch').addEventListener('click', async () => {
+        const mixerUrl = document.getElementById('mixer-live-url').value.trim();
+        const testIp = document.getElementById('mixer-test-ip').value.trim();
+        const prodIp = document.getElementById('mixer-prod-ip').value.trim();
+        const chk = validateMixerLiveUrl(mixerUrl);
+        if (!chk.valid) { toast(chk.message, false); return; }
+        if (!testIp) { toast('请输入测试环境 IP', false); return; }
+        if (!prodIp) { toast('请输入线上环境 IP', false); return; }
+        const btn = document.getElementById('btn-mixer-fetch');
+        btn.disabled = true;
+        btn.textContent = '请求中…';
+        const swapHost = (url, host) => {
+            const u = new URL(url);
+            u.host = host;
+            return u.toString();
+        };
+        const pull = async (url) => {
+            const res = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+        };
+        try {
+            const [testData, prodData] = await Promise.all([
+                pull(swapHost(mixerUrl, testIp)),
+                pull(swapHost(mixerUrl, prodIp))
+            ]);
+            document.getElementById('mixer-ref-input').value = JSON.stringify(testData, null, 4);
+            document.getElementById('mixer-act-input').value = JSON.stringify(prodData, null, 4);
+            toast('已填入测试 / 线上响应，开始比对');
+            compareMixerAction();
+        } catch (e) {
+            toast('拉取失败（多半是 CORS）：' + (e.message || e), false);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-cloud-arrow-down"></i> 拉取并填入';
+        }
+    });
     document.getElementById('mixer-only-diff').addEventListener('change', () => { if (lastMixerBlocks.length) renderMixerBlocks(); });
     document.getElementById('mixer-filter').addEventListener('input', () => { if (lastMixerBlocks.length) renderMixerBlocks(); });
 
@@ -2573,6 +3119,7 @@ name</textarea>
         if (!meta || e.key !== 'Enter') return;
         const active = document.querySelector('.tab-content.active')?.id;
         if (active === 'url-tab') parseUrlAction();
+        else if (active === 'sdk-tab') runUnionSdkDecrypt();
         else if (active === 'json-tab') extractJsonAction();
         else if (active === 'mixer-tab') compareMixerAction();
     });
